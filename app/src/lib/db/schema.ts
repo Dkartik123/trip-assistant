@@ -1,0 +1,251 @@
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+  pgEnum,
+  index,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+
+// ─── Enums ───────────────────────────────────────────────
+
+export const tripStatusEnum = pgEnum("trip_status", [
+  "draft",
+  "active",
+  "completed",
+]);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "24h_before",
+  "3h_before",
+  "arrival",
+  "trip_changed",
+  "custom",
+]);
+
+export const notificationStatusEnum = pgEnum("notification_status", [
+  "pending",
+  "sent",
+  "failed",
+]);
+
+export const messageChannelEnum = pgEnum("message_channel", [
+  "telegram",
+  "whatsapp",
+]);
+
+export const messageRoleEnum = pgEnum("message_role", ["user", "assistant"]);
+
+export const messageContentTypeEnum = pgEnum("message_content_type", [
+  "text",
+  "voice",
+]);
+
+// ─── Agencies ────────────────────────────────────────────
+
+export const agencies = pgTable("agencies", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  apiKey: varchar("api_key", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// ─── Managers ────────────────────────────────────────────
+
+export const managers = pgTable("managers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agencyId: uuid("agency_id")
+    .notNull()
+    .references(() => agencies.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// ─── Clients ─────────────────────────────────────────────
+
+export const clients = pgTable("clients", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agencyId: uuid("agency_id")
+    .notNull()
+    .references(() => agencies.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
+  email: varchar("email", { length: 255 }),
+  telegramChatId: varchar("telegram_chat_id", { length: 50 }),
+  telegramGroupId: varchar("telegram_group_id", { length: 50 }),
+  whatsappPhone: varchar("whatsapp_phone", { length: 50 }),
+  timezone: varchar("timezone", { length: 100 }).default("UTC"),
+  language: varchar("language", { length: 10 }).default("en"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// ─── Trips ───────────────────────────────────────────────
+
+export const trips = pgTable(
+  "trips",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    managerId: uuid("manager_id")
+      .notNull()
+      .references(() => managers.id),
+    status: tripStatusEnum("status").notNull().default("draft"),
+
+    // Flight
+    flightDate: timestamp("flight_date", { withTimezone: true }),
+    flightNumber: varchar("flight_number", { length: 20 }),
+    departureCity: varchar("departure_city", { length: 100 }),
+    departureAirport: varchar("departure_airport", { length: 10 }),
+    arrivalCity: varchar("arrival_city", { length: 100 }),
+    arrivalAirport: varchar("arrival_airport", { length: 10 }),
+    gate: varchar("gate", { length: 10 }),
+
+    // Hotel
+    hotelName: varchar("hotel_name", { length: 255 }),
+    hotelAddress: text("hotel_address"),
+    hotelPhone: varchar("hotel_phone", { length: 50 }),
+    checkinTime: varchar("checkin_time", { length: 10 }),
+    checkoutTime: varchar("checkout_time", { length: 10 }),
+
+    // Guide
+    guideName: varchar("guide_name", { length: 255 }),
+    guidePhone: varchar("guide_phone", { length: 50 }),
+
+    // Transfer
+    transferInfo: text("transfer_info"),
+    transferDriverPhone: varchar("transfer_driver_phone", { length: 50 }),
+    transferMeetingPoint: text("transfer_meeting_point"),
+
+    // Insurance
+    insuranceInfo: text("insurance_info"),
+    insurancePhone: varchar("insurance_phone", { length: 50 }),
+
+    // Manager contact (for AI fallback)
+    managerPhone: varchar("manager_phone", { length: 50 }),
+
+    // Deep-link token
+    inviteToken: varchar("invite_token", { length: 64 }).unique(),
+
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("trips_client_id_idx").on(table.clientId),
+    index("trips_flight_date_idx").on(table.flightDate),
+    index("trips_invite_token_idx").on(table.inviteToken),
+  ],
+);
+
+// ─── Notifications ───────────────────────────────────────
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum("type").notNull(),
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    status: notificationStatusEnum("status").notNull().default("pending"),
+    content: text("content"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("notifications_scheduled_at_idx").on(table.scheduledAt)],
+);
+
+// ─── Messages ────────────────────────────────────────────
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    chatId: varchar("chat_id", { length: 50 }).notNull(),
+    channel: messageChannelEnum("channel").notNull(),
+    role: messageRoleEnum("role").notNull(),
+    content: text("content").notNull(),
+    contentType: messageContentTypeEnum("content_type")
+      .notNull()
+      .default("text"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("messages_trip_id_idx").on(table.tripId),
+    index("messages_created_at_idx").on(table.createdAt),
+  ],
+);
+
+// ─── Relations ───────────────────────────────────────────
+
+export const agenciesRelations = relations(agencies, ({ many }) => ({
+  managers: many(managers),
+  clients: many(clients),
+}));
+
+export const managersRelations = relations(managers, ({ one, many }) => ({
+  agency: one(agencies, {
+    fields: [managers.agencyId],
+    references: [agencies.id],
+  }),
+  trips: many(trips),
+}));
+
+export const clientsRelations = relations(clients, ({ one, many }) => ({
+  agency: one(agencies, {
+    fields: [clients.agencyId],
+    references: [agencies.id],
+  }),
+  trips: many(trips),
+}));
+
+export const tripsRelations = relations(trips, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [trips.clientId],
+    references: [clients.id],
+  }),
+  manager: one(managers, {
+    fields: [trips.managerId],
+    references: [managers.id],
+  }),
+  notifications: many(notifications),
+  messages: many(messages),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  trip: one(trips, {
+    fields: [notifications.tripId],
+    references: [trips.id],
+  }),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  trip: one(trips, {
+    fields: [messages.tripId],
+    references: [trips.id],
+  }),
+}));

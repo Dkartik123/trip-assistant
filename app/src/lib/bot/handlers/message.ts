@@ -1,0 +1,91 @@
+import { Context } from "grammy";
+import { createLogger } from "@/lib/logger";
+import {
+  clientRepository,
+  tripRepository,
+  messageRepository,
+} from "@/lib/db/repositories";
+import { generateResponse } from "@/lib/services/ai.service";
+
+const log = createLogger("bot:message");
+
+/**
+ * Handle incoming text messages.
+ * Loads trip context → calls Claude AI → saves history → replies.
+ */
+export async function handleMessage(ctx: Context): Promise<void> {
+  const chatId = ctx.chat?.id?.toString();
+  const userText = ctx.message?.text;
+
+  if (!chatId || !userText) return;
+
+  // Skip commands (already handled)
+  if (userText.startsWith("/")) return;
+
+  try {
+    // In groups, only respond to @mentions or replies to bot messages
+    const isGroup =
+      ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+    if (isGroup) {
+      const botInfo = ctx.me;
+      const isMentioned = userText.includes(`@${botInfo.username}`);
+      const isReply =
+        ctx.message?.reply_to_message?.from?.id === botInfo.id;
+
+      if (!isMentioned && !isReply) return;
+    }
+
+    // Find client by chat ID
+    const client = isGroup
+      ? await clientRepository.findByTelegramGroupId(chatId)
+      : await clientRepository.findByTelegramChatId(chatId);
+
+    if (!client) {
+      await ctx.reply(
+        "🔗 I don't recognize you yet. Please use the link from your travel agency to connect.",
+      );
+      return;
+    }
+
+    // Find active trip
+    const trip = await tripRepository.findByClientId(client.id);
+    if (!trip) {
+      await ctx.reply("📭 No active trip found. Contact your travel agency.");
+      return;
+    }
+
+    // Show typing indicator
+    await ctx.replyWithChatAction("typing");
+
+    // Load message history (last 10)
+    const history = await messageRepository.findByTripId(trip.id, 10);
+
+    // Generate AI response
+    const response = await generateResponse(trip, history, userText);
+
+    // Save user message
+    await messageRepository.create({
+      tripId: trip.id,
+      chatId,
+      channel: "telegram",
+      role: "user",
+      content: userText,
+      contentType: "text",
+    });
+
+    // Save assistant response
+    await messageRepository.create({
+      tripId: trip.id,
+      chatId,
+      channel: "telegram",
+      role: "assistant",
+      content: response,
+      contentType: "text",
+    });
+
+    await ctx.reply(response);
+  } catch (error) {
+    log.error({ error, chatId }, "Failed to handle message");
+    await ctx.reply("⚠️ Something went wrong. Please try again.");
+  }
+}

@@ -1,0 +1,23 @@
+services:
+  # Development: only PostgreSQL, app runs locally via `npm run dev`
+  postgres:
+    image: postgres:16-alpine
+    container_name: trip-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tripuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trippass}
+      POSTGRES_DB: ${POSTGRES_DB:-tripdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tripuser} -d ${POSTGRES_DB:-tripdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata_dev:
+    driver: local

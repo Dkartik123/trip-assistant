@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.env
+.env.local
+.env.*.local
+pgdata/
+pgdata_dev/
+*.log
+dist/
+coverage/
+.turbo/
