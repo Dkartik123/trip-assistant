@@ -7,6 +7,7 @@ import {
   pgEnum,
   index,
   jsonb,
+  boolean,
 } from "drizzle-orm/pg-core";
 import type {
   FlightItem,
@@ -51,6 +52,19 @@ export const messageContentTypeEnum = pgEnum("message_content_type", [
   "voice",
 ]);
 
+export const preferredMessengerEnum = pgEnum("preferred_messenger", [
+  "whatsapp",
+  "telegram",
+  "sms",
+  "email",
+]);
+
+export const clientStatusEnum = pgEnum("client_status", [
+  "active",
+  "archived",
+  "blocked",
+]);
+
 // ─── Agencies ────────────────────────────────────────────
 
 export const agencies = pgTable("agencies", {
@@ -84,17 +98,61 @@ export const clients = pgTable("clients", {
   agencyId: uuid("agency_id")
     .notNull()
     .references(() => agencies.id, { onDelete: "cascade" }),
+
+  // Идентификация
   name: varchar("name", { length: 255 }).notNull(),
+  firstName: varchar("first_name", { length: 128 }),
+  lastName: varchar("last_name", { length: 128 }),
+  dateOfBirth: timestamp("date_of_birth", { withTimezone: true }),
+
+  // Контакты
   phone: varchar("phone", { length: 50 }),
   email: varchar("email", { length: 255 }),
+  country: varchar("country", { length: 100 }),
+
+  // Язык и локаль
+  language: varchar("language", { length: 10 }).default("en"),
+  locale: varchar("locale", { length: 20 }),
+
+  // Мессенджеры
   telegramChatId: varchar("telegram_chat_id", { length: 50 }),
   telegramGroupId: varchar("telegram_group_id", { length: 50 }),
+  telegramUsername: varchar("telegram_username", { length: 100 }),
   whatsappPhone: varchar("whatsapp_phone", { length: 50 }),
+  preferredMessenger: preferredMessengerEnum("preferred_messenger"),
+
+  // Верификация
+  isVerified: boolean("is_verified").default(false),
+
+  // Бизнес-поля
+  clientStatus: clientStatusEnum("client_status").default("active"),
+  source: varchar("source", { length: 100 }),
+  managerId: uuid("manager_id").references(() => managers.id, {
+    onDelete: "set null",
+  }),
+  notes: text("notes"),
+
+  // Настройки AI / уведомлений
   timezone: varchar("timezone", { length: 100 }).default("UTC"),
-  language: varchar("language", { length: 10 }).default("en"),
+  preferredContactTime: varchar("preferred_contact_time", { length: 100 }),
+  voiceEnabled: boolean("voice_enabled").default(true),
+  notificationEnabled: boolean("notification_enabled").default(true),
+
+  // Экстренный контакт
+  emergencyContactName: varchar("emergency_contact_name", { length: 255 }),
+  emergencyContactPhone: varchar("emergency_contact_phone", { length: 50 }),
+
+  // Согласия
+  consentMarketing: boolean("consent_marketing").default(false),
+  consentMessaging: boolean("consent_messaging").default(false),
+  consentPrivacy: boolean("consent_privacy").default(false),
+
+  // Временные метки
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 // ─── Trips ───────────────────────────────────────────────

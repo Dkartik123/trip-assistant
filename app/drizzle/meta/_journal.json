@@ -22,6 +22,13 @@
       "when": 1773241381571,
       "tag": "0002_redundant_katie_power",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773254185805,
+      "tag": "0003_worried_mantis",
+      "breakpoints": true
     }
   ]
 }
