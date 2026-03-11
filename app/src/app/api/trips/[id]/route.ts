@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { tripService } from "@/lib/services";
-import { tripRepository, messageRepository } from "@/lib/db/repositories";
+import { tripRepository } from "@/lib/db/repositories";
 import { createLogger } from "@/lib/logger";
+import { badRequest, notFound, serverError } from "@/lib/api-error";
 
 const log = createLogger("api:trips:id");
 
@@ -17,40 +18,68 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const trip = await tripRepository.findById(id);
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return notFound("Trip not found");
     }
 
     return NextResponse.json({ data: trip });
   } catch (error) {
     log.error({ error }, "Failed to get trip");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return serverError();
   }
 }
 
 const updateTripSchema = z.object({
   status: z.enum(["draft", "active", "completed"]).optional(),
-  flightDate: z.string().datetime().optional(),
-  flightNumber: z.string().max(20).optional(),
-  departureCity: z.string().max(100).optional(),
-  departureAirport: z.string().max(10).optional(),
-  arrivalCity: z.string().max(100).optional(),
-  arrivalAirport: z.string().max(10).optional(),
-  gate: z.string().max(10).optional(),
-  hotelName: z.string().max(255).optional(),
-  hotelAddress: z.string().optional(),
-  hotelPhone: z.string().max(50).optional(),
-  checkinTime: z.string().max(10).optional(),
-  checkoutTime: z.string().max(10).optional(),
-  guideName: z.string().max(255).optional(),
-  guidePhone: z.string().max(50).optional(),
-  transferInfo: z.string().optional(),
-  transferDriverPhone: z.string().max(50).optional(),
-  transferMeetingPoint: z.string().optional(),
-  insuranceInfo: z.string().optional(),
-  insurancePhone: z.string().max(50).optional(),
+  flights: z
+    .array(
+      z.object({
+        flightDate: z.string().optional().default(""),
+        flightNumber: z.string().optional().default(""),
+        departureCity: z.string().optional().default(""),
+        departureAirport: z.string().optional().default(""),
+        arrivalCity: z.string().optional().default(""),
+        arrivalAirport: z.string().optional().default(""),
+        arrivalDate: z.string().optional().default(""),
+        gate: z.string().optional().default(""),
+      }),
+    )
+    .optional(),
+  hotels: z
+    .array(
+      z.object({
+        hotelName: z.string().optional().default(""),
+        hotelAddress: z.string().optional().default(""),
+        hotelPhone: z.string().optional().default(""),
+        checkinTime: z.string().optional().default(""),
+        checkoutTime: z.string().optional().default(""),
+      }),
+    )
+    .optional(),
+  guides: z
+    .array(
+      z.object({
+        guideName: z.string().optional().default(""),
+        guidePhone: z.string().optional().default(""),
+      }),
+    )
+    .optional(),
+  transfers: z
+    .array(
+      z.object({
+        transferInfo: z.string().optional().default(""),
+        transferDriverPhone: z.string().optional().default(""),
+        transferMeetingPoint: z.string().optional().default(""),
+      }),
+    )
+    .optional(),
+  insurances: z
+    .array(
+      z.object({
+        insuranceInfo: z.string().optional().default(""),
+        insurancePhone: z.string().optional().default(""),
+      }),
+    )
+    .optional(),
   managerPhone: z.string().max(50).optional(),
   notes: z.string().optional(),
 });
@@ -65,30 +94,28 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const parsed = updateTripSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation error", details: parsed.error.flatten() },
-        { status: 400 },
-      );
+      return badRequest("Validation error", parsed.error.flatten());
     }
 
     const existing = await tripRepository.findById(id);
     if (!existing) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return notFound("Trip not found");
     }
 
     const data = parsed.data;
+
+    // Sync flightDate from first flight for notification scheduling
+    const firstFlightDate = data.flights?.[0]?.flightDate;
+
     const trip = await tripService.updateTrip(id, {
       ...data,
-      flightDate: data.flightDate ? new Date(data.flightDate) : undefined,
+      flightDate: firstFlightDate ? new Date(firstFlightDate) : undefined,
     });
 
     return NextResponse.json({ data: trip });
   } catch (error) {
     log.error({ error }, "Failed to update trip");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return serverError();
   }
 }
 
@@ -101,16 +128,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const existing = await tripRepository.findById(id);
 
     if (!existing) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return notFound("Trip not found");
     }
 
     await tripRepository.delete(id);
     return NextResponse.json({ status: "deleted" });
   } catch (error) {
     log.error({ error }, "Failed to delete trip");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return serverError();
   }
 }

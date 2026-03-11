@@ -28,11 +28,19 @@ export async function transcribeVoice(
       type: "audio/ogg",
     });
 
-    const transcription = await client.audio.transcriptions.create({
-      model: "whisper-1",
-      file,
-      ...(language ? { language } : {}),
-    });
+    const transcription = await Promise.race([
+      client.audio.transcriptions.create({
+        model: "whisper-1",
+        file,
+        ...(language ? { language } : {}),
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Whisper transcription timeout")),
+          30_000,
+        ),
+      ),
+    ]);
 
     log.debug(
       { textLength: transcription.text.length },
@@ -41,7 +49,8 @@ export async function transcribeVoice(
 
     return transcription.text;
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     log.error({ error }, "Voice transcription failed");
-    throw new Error("Failed to transcribe voice message");
+    throw new Error(`Failed to transcribe voice message: ${message}`);
   }
 }

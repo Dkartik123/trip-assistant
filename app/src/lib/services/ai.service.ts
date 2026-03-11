@@ -1,21 +1,83 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { createLogger } from "@/lib/logger";
 import type { Trip } from "@/lib/db/repositories";
 import type { Message } from "@/lib/db/repositories";
+import type {
+  FlightItem,
+  HotelItem,
+  GuideItem,
+  TransferItem,
+  InsuranceItem,
+} from "@/lib/types/trip-sections";
 
 const log = createLogger("ai-service");
 
 // Lazy-init singleton — avoids import-time env validation
-let _client: Anthropic | null = null;
-function getClient(): Anthropic {
+let _client: GoogleGenAI | null = null;
+function getClient(): GoogleGenAI {
   if (!_client) {
-    _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+    _client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   }
   return _client;
 }
 
-const HAIKU_MODEL = "claude-haiku-4-5-20251001";
-const SONNET_MODEL = "claude-sonnet-4-6-20250516";
+const FLASH_MODEL = "gemini-2.0-flash";
+const PRO_MODEL = "gemini-2.0-flash-lite";
+
+function formatFlights(raw: unknown): string {
+  const flights = (raw as FlightItem[] | null) ?? [];
+  if (flights.length === 0) return "- **Flights**: N/A";
+  return flights
+    .map(
+      (f, i) =>
+        `- **Flight ${i + 1}**: ${f.flightNumber || "N/A"} on ${f.flightDate || "N/A"}\n  Route: ${f.departureCity || "?"} (${f.departureAirport || "?"}) → ${f.arrivalCity || "?"} (${f.arrivalAirport || "?"})\n  Arrival: ${f.arrivalDate || "N/A"}, Gate: ${f.gate || "Not assigned yet"}`,
+    )
+    .join("\n");
+}
+
+function formatHotels(raw: unknown): string {
+  const hotels = (raw as HotelItem[] | null) ?? [];
+  if (hotels.length === 0) return "- **Hotels**: N/A";
+  return hotels
+    .map(
+      (h, i) =>
+        `- **Hotel ${i + 1}**: ${h.hotelName || "N/A"}, ${h.hotelAddress || "N/A"}, Phone: ${h.hotelPhone || "N/A"}\n  Check-in: ${h.checkinTime || "N/A"}, Check-out: ${h.checkoutTime || "N/A"}`,
+    )
+    .join("\n");
+}
+
+function formatGuides(raw: unknown): string {
+  const guides = (raw as GuideItem[] | null) ?? [];
+  if (guides.length === 0) return "- **Guides**: N/A";
+  return guides
+    .map(
+      (g, i) =>
+        `- **Guide ${i + 1}**: ${g.guideName || "N/A"}, Phone: ${g.guidePhone || "N/A"}`,
+    )
+    .join("\n");
+}
+
+function formatTransfers(raw: unknown): string {
+  const transfers = (raw as TransferItem[] | null) ?? [];
+  if (transfers.length === 0) return "- **Transfer**: N/A";
+  return transfers
+    .map(
+      (t, i) =>
+        `- **Transfer ${i + 1}**: ${t.transferInfo || "N/A"}, Driver: ${t.transferDriverPhone || "N/A"}, Meeting: ${t.transferMeetingPoint || "N/A"}`,
+    )
+    .join("\n");
+}
+
+function formatInsurances(raw: unknown): string {
+  const insurances = (raw as InsuranceItem[] | null) ?? [];
+  if (insurances.length === 0) return "- **Insurance**: N/A";
+  return insurances
+    .map(
+      (ins, i) =>
+        `- **Insurance ${i + 1}**: ${ins.insuranceInfo || "N/A"}, Phone: ${ins.insurancePhone || "N/A"}`,
+    )
+    .join("\n");
+}
 
 /**
  * Build a system prompt with trip context.
@@ -25,14 +87,11 @@ function buildSystemPrompt(trip: Trip): string {
 
 ## Trip Information
 
-- **Flight**: ${trip.flightNumber || "N/A"} on ${trip.flightDate ? new Date(trip.flightDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "N/A"}
-- **Route**: ${trip.departureCity || "?"} (${trip.departureAirport || "?"}) → ${trip.arrivalCity || "?"} (${trip.arrivalAirport || "?"})
-- **Gate**: ${trip.gate || "Not assigned yet"}
-- **Hotel**: ${trip.hotelName || "N/A"}, ${trip.hotelAddress || "N/A"}, Phone: ${trip.hotelPhone || "N/A"}
-- **Check-in**: ${trip.checkinTime || "N/A"}, Check-out: ${trip.checkoutTime || "N/A"}
-- **Guide**: ${trip.guideName || "N/A"}, Phone: ${trip.guidePhone || "N/A"}
-- **Transfer**: ${trip.transferInfo || "N/A"}, Driver: ${trip.transferDriverPhone || "N/A"}, Meeting: ${trip.transferMeetingPoint || "N/A"}
-- **Insurance**: ${trip.insuranceInfo || "N/A"}, Phone: ${trip.insurancePhone || "N/A"}
+${formatFlights(trip.flights)}
+${formatHotels(trip.hotels)}
+${formatGuides(trip.guides)}
+${formatTransfers(trip.transfers)}
+${formatInsurances(trip.insurances)}
 - **Manager contact**: ${trip.managerPhone || "N/A"}
 
 ## Rules
@@ -46,28 +105,27 @@ function buildSystemPrompt(trip: Trip): string {
 }
 
 /**
- * Convert chat history to Anthropic message format.
+ * Convert chat history to Gemini content format.
  */
-function buildMessages(
+function buildContents(
   history: Message[],
   userMessage: string,
-): Anthropic.MessageParam[] {
-  // history is newest-first from DB, reverse for chronological order
+): Array<{ role: "user" | "model"; parts: Array<{ text: string }> }> {
   const sorted = [...history].reverse();
 
-  const msgs: Anthropic.MessageParam[] = sorted.map((m) => ({
-    role: m.role as "user" | "assistant",
-    content: m.content,
+  const contents = sorted.map((m) => ({
+    role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
+    parts: [{ text: m.content }],
   }));
 
-  msgs.push({ role: "user", content: userMessage });
+  contents.push({ role: "user", parts: [{ text: userMessage }] });
 
-  return msgs;
+  return contents;
 }
 
 /**
  * Generate an AI response to a tourist's question.
- * Uses Haiku (fast/cheap) by default, falls back to Sonnet for complex questions.
+ * Uses Gemini 2.0 Flash (fast/cheap) by default, falls back to Flash-Lite.
  */
 export async function generateResponse(
   trip: Trip,
@@ -76,45 +134,46 @@ export async function generateResponse(
 ): Promise<string> {
   const client = getClient();
   const systemPrompt = buildSystemPrompt(trip);
-  const messages = buildMessages(history, userMessage);
+  const contents = buildContents(history, userMessage);
 
   try {
-    const response = await client.messages.create({
-      model: HAIKU_MODEL,
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages,
+    const response = await client.models.generateContent({
+      model: FLASH_MODEL,
+      config: {
+        maxOutputTokens: 1024,
+        systemInstruction: systemPrompt,
+      },
+      contents,
     });
 
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const text = response.text ?? "";
 
     log.debug(
       {
-        model: HAIKU_MODEL,
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
+        model: FLASH_MODEL,
+        inputTokens: response.usageMetadata?.promptTokenCount,
+        outputTokens: response.usageMetadata?.candidatesTokenCount,
       },
       "AI response generated",
     );
 
     return text;
   } catch (error) {
-    log.error({ error }, "AI generation failed, trying Sonnet fallback");
+    log.error({ error }, "AI generation failed, trying fallback model");
 
     try {
-      const fallback = await client.messages.create({
-        model: SONNET_MODEL,
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages,
+      const fallback = await client.models.generateContent({
+        model: PRO_MODEL,
+        config: {
+          maxOutputTokens: 1024,
+          systemInstruction: systemPrompt,
+        },
+        contents,
       });
 
-      return fallback.content[0].type === "text"
-        ? fallback.content[0].text
-        : "Sorry, I couldn't process your request.";
+      return fallback.text ?? "Sorry, I couldn't process your request.";
     } catch (fallbackError) {
-      log.error({ fallbackError }, "Sonnet fallback also failed");
+      log.error({ fallbackError }, "Fallback model also failed");
       return trip.managerPhone
         ? `I'm having trouble right now. Please contact your manager: ${trip.managerPhone}`
         : "I'm having trouble right now. Please contact your travel manager.";

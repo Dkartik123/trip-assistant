@@ -2,19 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /**
  * AI service unit test — verifies prompt building and response handling.
- * Uses mocked Anthropic client to avoid real API calls.
+ * Uses mocked Google Gemini client to avoid real API calls.
  */
 
-// Mock Anthropic SDK
-const mockCreate = vi.fn().mockResolvedValue({
-  content: [{ type: "text", text: "Your flight is on May 12." }],
-  usage: { input_tokens: 100, output_tokens: 20 },
+// Mock Google GenAI SDK
+const mockGenerateContent = vi.fn().mockResolvedValue({
+  text: "Your flight is on May 12.",
+  usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 20 },
 });
 
-vi.mock("@anthropic-ai/sdk", () => {
+vi.mock("@google/genai", () => {
   return {
-    default: class MockAnthropic {
-      messages = { create: mockCreate };
+    GoogleGenAI: class MockGoogleGenAI {
+      models = { generateContent: mockGenerateContent };
     },
   };
 });
@@ -32,13 +32,11 @@ vi.mock("@/lib/logger", () => ({
 describe("AI Service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.ANTHROPIC_API_KEY = "sk-ant-test-key";
+    process.env.GEMINI_API_KEY = "AIzaSy-test-key";
   });
 
   it("should generate a response from trip data", async () => {
-    const { generateResponse } = await import(
-      "@/lib/services/ai.service"
-    );
+    const { generateResponse } = await import("@/lib/services/ai.service");
 
     const mockTrip = {
       id: "trip-1",
@@ -51,6 +49,7 @@ describe("AI Service", () => {
       departureAirport: "TLL",
       arrivalCity: "Rome",
       arrivalAirport: "FCO",
+      arrivalDate: new Date("2026-05-12T10:30:00Z"),
       gate: "A12",
       hotelName: "Hotel Roma",
       hotelAddress: "Via Roma 1",
@@ -65,6 +64,41 @@ describe("AI Service", () => {
       insuranceInfo: "ERGO Travel Insurance",
       insurancePhone: "+372 6101010",
       managerPhone: "+372 5551234",
+      flights: [
+        {
+          flightDate: "2026-05-12T07:45",
+          flightNumber: "AY123",
+          departureCity: "Tallinn",
+          departureAirport: "TLL",
+          arrivalCity: "Rome",
+          arrivalAirport: "FCO",
+          arrivalDate: "2026-05-12T10:30",
+          gate: "A12",
+        },
+      ],
+      hotels: [
+        {
+          hotelName: "Hotel Roma",
+          hotelAddress: "Via Roma 1",
+          hotelPhone: "+39 06 1234567",
+          checkinTime: "14:00",
+          checkoutTime: "11:00",
+        },
+      ],
+      guides: [{ guideName: "Marco", guidePhone: "+39 333 1234567" }],
+      transfers: [
+        {
+          transferInfo: "Airport pickup included",
+          transferDriverPhone: "+39 333 7654321",
+          transferMeetingPoint: "Arrivals hall, exit B",
+        },
+      ],
+      insurances: [
+        {
+          insuranceInfo: "ERGO Travel Insurance",
+          insurancePhone: "+372 6101010",
+        },
+      ],
       inviteToken: "test-token",
       notes: null,
       createdAt: new Date(),
@@ -77,9 +111,7 @@ describe("AI Service", () => {
   });
 
   it("should handle empty history", async () => {
-    const { generateResponse } = await import(
-      "@/lib/services/ai.service"
-    );
+    const { generateResponse } = await import("@/lib/services/ai.service");
 
     const mockTrip = {
       id: "trip-2",
@@ -92,6 +124,7 @@ describe("AI Service", () => {
       departureAirport: null,
       arrivalCity: null,
       arrivalAirport: null,
+      arrivalDate: null,
       gate: null,
       hotelName: null,
       hotelAddress: null,
@@ -106,6 +139,11 @@ describe("AI Service", () => {
       insuranceInfo: null,
       insurancePhone: null,
       managerPhone: null,
+      flights: [],
+      hotels: [],
+      guides: [],
+      transfers: [],
+      insurances: [],
       inviteToken: "token-2",
       notes: null,
       createdAt: new Date(),

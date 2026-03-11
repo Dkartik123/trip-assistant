@@ -38,65 +38,41 @@ import {
   User,
 } from "lucide-react";
 
-// Mock data — replace with API
-const mockTrip = {
-  id: "1",
-  clientName: "Иван Петров",
-  clientPhone: "+7 999 123 45 67",
-  clientTelegram: "@ivan_petrov",
-  status: "active" as const,
-  flightDate: "2026-03-15T10:30:00Z",
-  flightNumber: "SU2134",
-  departureCity: "Москва",
-  departureAirport: "SVO",
-  arrivalCity: "Анталья",
-  arrivalAirport: "AYT",
-  gate: "A23",
-  hotelName: "Rixos Premium Belek",
-  hotelAddress: "Ileribasi Mevkii, Belek, Antalya",
-  hotelPhone: "+90 242 310 41 00",
-  checkinTime: "14:00",
-  checkoutTime: "12:00",
-  guideName: "Мехмет Йылмаз",
-  guidePhone: "+90 532 123 45 67",
-  transferInfo: "Индивидуальный трансфер аэропорт — отель",
-  transferDriverPhone: "+90 532 987 65 43",
-  transferMeetingPoint: "Выход B, табличка с именем",
-  insuranceInfo: "Полис #12345, покрытие до $50,000",
-  insurancePhone: "+7 800 123 45 67",
-  managerPhone: "+372 555 1234",
-  inviteToken: "abc123def456",
-  notes: "VIP клиент, предпочитает номер с видом на море",
-};
+interface TripData {
+  id: string;
+  clientName: string;
+  clientPhone: string | null;
+  status: "draft" | "active" | "completed";
+  flightDate: string | null;
+  flightNumber: string | null;
+  departureCity: string | null;
+  departureAirport: string | null;
+  arrivalCity: string | null;
+  arrivalAirport: string | null;
+  gate: string | null;
+  hotelName: string | null;
+  hotelAddress: string | null;
+  hotelPhone: string | null;
+  checkinTime: string | null;
+  checkoutTime: string | null;
+  guideName: string | null;
+  guidePhone: string | null;
+  transferInfo: string | null;
+  transferDriverPhone: string | null;
+  transferMeetingPoint: string | null;
+  insuranceInfo: string | null;
+  insurancePhone: string | null;
+  managerPhone: string | null;
+  inviteToken: string | null;
+  notes: string | null;
+}
 
-const mockMessages = [
-  {
-    id: "1",
-    role: "user" as const,
-    content: "Привет! Подскажите, во сколько регистрация на рейс?",
-    createdAt: "2026-03-14T08:00:00Z",
-  },
-  {
-    id: "2",
-    role: "assistant" as const,
-    content:
-      "Здравствуйте, Иван! Ваш рейс SU2134 из Москвы (SVO) вылетает 15 марта в 10:30. Рекомендую прибыть в аэропорт за 2.5 часа, то есть к 08:00. Онлайн-регистрация обычно открывается за 24 часа до вылета. Ваш гейт: A23.",
-    createdAt: "2026-03-14T08:00:05Z",
-  },
-  {
-    id: "3",
-    role: "user" as const,
-    content: "А где меня встретят?",
-    createdAt: "2026-03-14T09:15:00Z",
-  },
-  {
-    id: "4",
-    role: "assistant" as const,
-    content:
-      "Вас будет ждать водитель трансфера у выхода B с табличкой с вашим именем. Телефон водителя: +90 532 987 65 43. В любом случае, если не найдёте — позвоните, и он подойдёт к вам.",
-    createdAt: "2026-03-14T09:15:04Z",
-  },
-];
+interface MessageData {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+}
 
 const statusMap = {
   draft: { label: "Черновик", variant: "secondary" as const },
@@ -104,7 +80,8 @@ const statusMap = {
   completed: { label: "Завершена", variant: "outline" as const },
 };
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "—";
   return new Date(dateStr).toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "long",
@@ -131,11 +108,20 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
-export function TripDetailClient({ id }: { id: string }) {
+export function TripDetailClient({
+  id,
+  trip,
+  messages: tripMessages,
+}: {
+  id: string;
+  trip: TripData;
+  messages: MessageData[];
+}) {
   const [copied, setCopied] = useState(false);
-  const trip = mockTrip; // TODO: Fetch from API using id
   const botUsername = "trip_assistant_bot"; // TODO: From env
-  const inviteLink = `https://t.me/${botUsername}?start=${trip.inviteToken}`;
+  const inviteLink = trip.inviteToken
+    ? `https://t.me/${botUsername}?start=${trip.inviteToken}`
+    : "";
 
   async function copyLink() {
     await navigator.clipboard.writeText(inviteLink);
@@ -148,7 +134,12 @@ export function TripDetailClient({ id }: { id: string }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" render={<Link href="/admin/trips" />}>
+          <Button
+            nativeButton={false}
+            variant="ghost"
+            size="icon"
+            render={<Link href="/admin/trips" />}
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -180,7 +171,11 @@ export function TripDetailClient({ id }: { id: string }) {
                 </DialogDescription>
               </DialogHeader>
               <div className="flex gap-2">
-                <Input value={inviteLink} readOnly className="font-mono text-sm" />
+                <Input
+                  value={inviteLink}
+                  readOnly
+                  className="font-mono text-sm"
+                />
                 <Button onClick={copyLink} variant="outline" size="icon">
                   {copied ? (
                     <Check className="h-4 w-4 text-green-600" />
@@ -191,7 +186,10 @@ export function TripDetailClient({ id }: { id: string }) {
               </div>
             </DialogContent>
           </Dialog>
-          <Button render={<Link href={`/admin/trips/${id}/edit`} />}>
+          <Button
+            nativeButton={false}
+            render={<Link href={`/admin/trips/${id}/edit`} />}
+          >
             <Pencil className="mr-2 h-4 w-4" />
             Редактировать
           </Button>
@@ -210,7 +208,10 @@ export function TripDetailClient({ id }: { id: string }) {
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-3">
               <InfoRow label="Номер рейса" value={trip.flightNumber} />
-              <InfoRow label="Дата и время" value={formatDate(trip.flightDate)} />
+              <InfoRow
+                label="Дата и время"
+                value={formatDate(trip.flightDate)}
+              />
               <InfoRow label="Гейт" value={trip.gate} />
               <InfoRow label="Город вылета" value={trip.departureCity} />
               <InfoRow label="Аэропорт" value={trip.departureAirport} />
@@ -262,7 +263,10 @@ export function TripDetailClient({ id }: { id: string }) {
               <CardContent className="grid gap-3">
                 <InfoRow label="Описание" value={trip.transferInfo} />
                 <InfoRow label="Водитель" value={trip.transferDriverPhone} />
-                <InfoRow label="Место встречи" value={trip.transferMeetingPoint} />
+                <InfoRow
+                  label="Место встречи"
+                  value={trip.transferMeetingPoint}
+                />
               </CardContent>
             </Card>
           </div>
@@ -314,13 +318,11 @@ export function TripDetailClient({ id }: { id: string }) {
                 <MessageSquare className="h-4 w-4" />
                 История сообщений
               </CardTitle>
-              <CardDescription>
-                {mockMessages.length} сообщений
-              </CardDescription>
+              <CardDescription>{tripMessages.length} сообщений</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockMessages.length === 0 ? (
+                {tripMessages.length === 0 ? (
                   <div className="flex flex-col items-center py-8 text-center">
                     <MessageSquare className="mb-2 h-8 w-8 text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">
@@ -328,7 +330,7 @@ export function TripDetailClient({ id }: { id: string }) {
                     </p>
                   </div>
                 ) : (
-                  mockMessages.map((msg) => (
+                  tripMessages.map((msg) => (
                     <div key={msg.id} className="flex gap-3">
                       <div
                         className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${

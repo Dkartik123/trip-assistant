@@ -20,6 +20,14 @@ export async function handleVoice(ctx: Context): Promise<void> {
 
   if (!chatId || !voice) return;
 
+  // Reject voice messages longer than 60 seconds
+  if (voice.duration > 60) {
+    await ctx.reply(
+      "🎤 Voice message is too long (max 60 seconds). Please send a shorter message or type your question.",
+    );
+    return;
+  }
+
   try {
     // Find client
     const isGroup =
@@ -91,8 +99,6 @@ export async function handleVoice(ctx: Context): Promise<void> {
     await ctx.reply(`🎤 "${transcribedText}"\n\n${aiResponse}`);
   } catch (error) {
     log.error({ error, chatId }, "Failed to handle voice message");
-    await ctx.reply(
-      "⚠️ Could not process voice message. Try typing instead.",
-    );
+    await ctx.reply("⚠️ Could not process voice message. Try typing instead.");
   }
 }

@@ -1,39 +1,52 @@
 import { TripForm } from "@/components/admin/trip-form";
+import { tripRepository, clientRepository } from "@/lib/db/repositories";
+import { getCurrentManager } from "@/lib/admin-session";
+import { notFound } from "next/navigation";
+import type {
+  FlightItem,
+  HotelItem,
+  GuideItem,
+  TransferItem,
+  InsuranceItem,
+} from "@/lib/types/trip-sections";
 
-// TODO: Fetch trip data from API using params.id
 export default async function EditTripPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const [trip, manager] = await Promise.all([
+    tripRepository.findById(id),
+    getCurrentManager(),
+  ]);
 
-  // Mock data — replace with API fetch
+  if (!trip) {
+    notFound();
+  }
+
+  const clients = await clientRepository.findByAgencyId(manager.agencyId);
+
   const tripData = {
-    clientId: "1",
-    status: "active",
-    flightDate: "2026-03-15T10:30",
-    flightNumber: "SU2134",
-    departureCity: "Москва",
-    departureAirport: "SVO",
-    arrivalCity: "Анталья",
-    arrivalAirport: "AYT",
-    gate: "A23",
-    hotelName: "Rixos Premium",
-    hotelAddress: "Ileribasi Mevkii, Antalya",
-    hotelPhone: "+90 242 310 41 00",
-    checkinTime: "14:00",
-    checkoutTime: "12:00",
-    guideName: "Мехмет Йылмаз",
-    guidePhone: "+90 532 123 45 67",
-    transferInfo: "Индивидуальный трансфер",
-    transferDriverPhone: "+90 532 987 65 43",
-    transferMeetingPoint: "Выход B",
-    insuranceInfo: "Полис #12345",
-    insurancePhone: "+7 800 123 45 67",
-    managerPhone: "+372 555 1234",
-    notes: `Trip ID: ${id}`,
+    clientId: trip.clientId,
+    status: trip.status,
+    managerPhone: trip.managerPhone ?? "",
+    flights: (trip.flights as FlightItem[] | null) ?? [],
+    hotels: (trip.hotels as HotelItem[] | null) ?? [],
+    guides: (trip.guides as GuideItem[] | null) ?? [],
+    transfers: (trip.transfers as TransferItem[] | null) ?? [],
+    insurances: (trip.insurances as InsuranceItem[] | null) ?? [],
+    notes: trip.notes ?? "",
   };
 
-  return <TripForm initialData={tripData} isEdit />;
+  return (
+    <TripForm
+      initialData={tripData}
+      isEdit
+      tripId={id}
+      managerId={manager.id}
+      agencyId={manager.agencyId}
+      clients={clients.map((c) => ({ id: c.id, name: c.name }))}
+    />
+  );
 }

@@ -29,9 +29,9 @@
 - [x] Индексы (client_id, flight_date, scheduled_at)
 - [x] Relations (drizzle relational queries)
 - [x] drizzle.config.ts
-- [ ] Первая миграция (`npm run db:generate`)
-- [ ] Применить миграцию (`npm run db:migrate`)
-- [ ] Seed-данные для разработки (тестовое агентство + менеджер + клиент + поездка)
+- [x] Первая миграция (`npm run db:generate`)
+- [x] Применить миграцию (`npm run db:migrate`)
+- [x] Seed-данные для разработки (тестовое агентство + менеджер + клиент + поездка)
 
 ### 1.3 REST API
 
@@ -44,9 +44,9 @@
 - [x] `POST /api/trips/:id/invite` — сгенерировать deep-link
 - [x] `GET /api/trips/:id/messages` — история сообщений
 - [ ] Auth middleware (NextAuth / Clerk) на все `/api/trips/*`
-- [ ] `POST /api/clients` — создать клиента
-- [ ] `GET /api/clients` — список клиентов
-- [ ] Error response стандартизация (единый формат ошибок)
+- [x] `POST /api/clients` — создать клиента
+- [x] `GET /api/clients` — список клиентов
+- [x] Error response стандартизация (единый формат ошибок)
 
 ### 1.4 Telegram Bot
 
@@ -60,12 +60,12 @@
 - [x] Webhook endpoint `POST /api/webhook/telegram`
 - [ ] Зарегистрировать бота в @BotFather
 - [ ] Установить webhook URL (`bot.api.setWebhook(...)`)
-- [ ] `/trip` — полная сводка поездки
-- [ ] `/flight` — данные рейса
-- [ ] `/hotel` — данные отеля
-- [ ] `/guide` — контакт гида
-- [ ] `/docs` — отправка файлов через Telegram Files API
-- [ ] Inline-кнопки (quick actions: рейс, отель, гид, документы)
+- [x] `/trip` — полная сводка поездки
+- [x] `/flight` — данные рейса
+- [x] `/hotel` — данные отеля
+- [x] `/guide` — контакт гида
+- [x] `/docs` — отправка файлов через Telegram Files API
+- [x] Inline-кнопки (quick actions: рейс, отель, гид, документы)
 - [ ] Push-уведомление клиенту при изменении поездки менеджером
 
 ### 1.5 AI-сервис (Claude)
@@ -85,8 +85,8 @@
 - [x] OpenAI Whisper API интеграция
 - [x] Скачивание ogg из Telegram → Whisper → текст
 - [x] Передача распознанного текста в AI
-- [ ] Обработка ошибок (пустая транскрипция, таймаут)
-- [ ] Поддержка длинных голосовых (>60 сек)
+- [x] Обработка ошибок (пустая транскрипция, таймаут)
+- [x] Поддержка длинных голосовых (>60 сек)
 
 ### 1.7 Система уведомлений
 
@@ -110,23 +110,26 @@
 
 ### 1.9 Admin UI (Next.js)
 
-- [ ] Layout: sidebar + header (Tailwind)
-- [ ] Страница: список поездок (таблица)
-- [ ] Страница: создание поездки (форма)
-- [ ] Страница: редактирование поездки
-- [ ] Страница: просмотр истории сообщений клиента
-- [ ] Страница: генерация deep-link (копировать / отправить)
-- [ ] Страница: логин менеджера (NextAuth / Clerk)
-- [ ] Dashboard: кол-во активных поездок, сообщений сегодня
+- [x] Layout: sidebar + header (shadcn/ui + Tailwind)
+- [x] Страница: список поездок (таблица с поиском/фильтром)
+- [x] Страница: создание поездки (форма с табами)
+- [x] Страница: редактирование поездки
+- [x] Страница: просмотр истории сообщений клиента
+- [x] Страница: генерация deep-link (копировать / отправить)
+- [x] Страница: логин менеджера
+- [x] Dashboard: статистика + быстрые действия
+- [x] Страница: клиенты (таблица + добавление)
+- [x] Страница: настройки (бот, AI, WhatsApp, безопасность)
+- [ ] Подключить Admin UI к реальным API (убрать mock данные)
 
 ### 1.10 Тесты
 
 - [x] Vitest конфигурация
 - [x] AI service unit test (мок Claude API)
-- [ ] Trip service unit test
+- [x] Trip service unit test
 - [ ] Notification service unit test
 - [ ] API route integration tests (testcontainers)
-- [ ] Bot handler unit tests (мок grammY context)
+- [x] Bot handler unit tests (мок grammY context)
 - [ ] E2E: создать поездку → подключиться → задать вопрос → получить ответ
 
 ### 1.11 Качество кода
@@ -134,8 +137,8 @@
 - [x] ESLint настроен
 - [x] Prettier настроен
 - [x] TypeScript 0 ошибок (`tsc --noEmit`)
-- [ ] Husky + lint-staged (pre-commit hooks)
-- [ ] Commitlint (conventional commits)
+- [x] Husky + lint-staged (pre-commit hooks)
+- [x] Commitlint (conventional commits)
 
 ---
 
@@ -184,4 +187,4 @@
 
 ---
 
-_Последнее обновление: March 10, 2026_
+_Последнее обновление: March 11, 2026_

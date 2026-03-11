@@ -6,7 +6,15 @@ import {
   varchar,
   pgEnum,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
+import type {
+  FlightItem,
+  HotelItem,
+  GuideItem,
+  TransferItem,
+  InsuranceItem,
+} from "@/lib/types/trip-sections";
 import { relations } from "drizzle-orm";
 
 // ─── Enums ───────────────────────────────────────────────
@@ -110,6 +118,7 @@ export const trips = pgTable(
     departureAirport: varchar("departure_airport", { length: 10 }),
     arrivalCity: varchar("arrival_city", { length: 100 }),
     arrivalAirport: varchar("arrival_airport", { length: 10 }),
+    arrivalDate: timestamp("arrival_date", { withTimezone: true }),
     gate: varchar("gate", { length: 10 }),
 
     // Hotel
@@ -137,6 +146,13 @@ export const trips = pgTable(
 
     // Deep-link token
     inviteToken: varchar("invite_token", { length: 64 }).unique(),
+
+    // Multi-card JSONB arrays
+    flights: jsonb("flights").$type<FlightItem[]>().default([]),
+    hotels: jsonb("hotels").$type<HotelItem[]>().default([]),
+    guides: jsonb("guides").$type<GuideItem[]>().default([]),
+    transfers: jsonb("transfers").$type<TransferItem[]>().default([]),
+    insurances: jsonb("insurances").$type<InsuranceItem[]>().default([]),
 
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })

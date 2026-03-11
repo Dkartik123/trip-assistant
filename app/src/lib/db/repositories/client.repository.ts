@@ -1,4 +1,4 @@
-import { eq, and, or } from "drizzle-orm";
+import { eq, or, desc } from "drizzle-orm";
 import { db } from "../index";
 import { clients } from "../schema";
 
@@ -58,6 +58,13 @@ export const clientRepository = {
     return created;
   },
 
+  async findByAgencyId(agencyId: string): Promise<Client[]> {
+    return db.query.clients.findMany({
+      where: eq(clients.agencyId, agencyId),
+      orderBy: desc(clients.createdAt),
+    });
+  },
+
   async update(id: string, data: Partial<NewClient>): Promise<Client> {
     const [updated] = await db
       .update(clients)
@@ -67,17 +74,11 @@ export const clientRepository = {
     return updated;
   },
 
-  async linkTelegramChat(
-    clientId: string,
-    chatId: string,
-  ): Promise<Client> {
+  async linkTelegramChat(clientId: string, chatId: string): Promise<Client> {
     return this.update(clientId, { telegramChatId: chatId });
   },
 
-  async linkTelegramGroup(
-    clientId: string,
-    groupId: string,
-  ): Promise<Client> {
+  async linkTelegramGroup(clientId: string, groupId: string): Promise<Client> {
     return this.update(clientId, { telegramGroupId: groupId });
   },
 };

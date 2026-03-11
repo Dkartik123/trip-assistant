@@ -18,7 +18,7 @@ const envSchema = z.object({
   TELEGRAM_WEBHOOK_SECRET: z.string().min(8).default("default-webhook-secret"),
 
   // AI
-  ANTHROPIC_API_KEY: z.string().startsWith("sk-ant-"),
+  GEMINI_API_KEY: z.string().startsWith("AIza"),
   OPENAI_API_KEY: z.string().startsWith("sk-"),
 
   // WhatsApp (optional in MVP)

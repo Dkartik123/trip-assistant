@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { tripRepository } from "@/lib/db/repositories";
 import { createLogger } from "@/lib/logger";
+import { badRequest, notFound, serverError } from "@/lib/api-error";
 
 const log = createLogger("api:trips:invite");
 
@@ -15,14 +16,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const trip = await tripRepository.findById(id);
 
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return notFound("Trip not found");
     }
 
     if (!trip.inviteToken) {
-      return NextResponse.json(
-        { error: "Trip has no invite token" },
-        { status: 400 },
-      );
+      return badRequest("Trip has no invite token");
     }
 
     // Bot username should be from env or bot info
@@ -37,9 +35,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     log.error({ error }, "Failed to generate invite");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return serverError();
   }
 }

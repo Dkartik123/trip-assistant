@@ -3,34 +3,56 @@ import { z } from "zod";
 import { tripService } from "@/lib/services";
 import { tripRepository } from "@/lib/db/repositories";
 import { createLogger } from "@/lib/logger";
+import { badRequest, serverError } from "@/lib/api-error";
 
 const log = createLogger("api:trips");
 
 // ─── Validation Schemas ─────────────────────────────────
 
+const flightSchema = z.object({
+  flightDate: z.string().optional().default(""),
+  flightNumber: z.string().optional().default(""),
+  departureCity: z.string().optional().default(""),
+  departureAirport: z.string().optional().default(""),
+  arrivalCity: z.string().optional().default(""),
+  arrivalAirport: z.string().optional().default(""),
+  arrivalDate: z.string().optional().default(""),
+  gate: z.string().optional().default(""),
+});
+
+const hotelSchema = z.object({
+  hotelName: z.string().optional().default(""),
+  hotelAddress: z.string().optional().default(""),
+  hotelPhone: z.string().optional().default(""),
+  checkinTime: z.string().optional().default(""),
+  checkoutTime: z.string().optional().default(""),
+});
+
+const guideSchema = z.object({
+  guideName: z.string().optional().default(""),
+  guidePhone: z.string().optional().default(""),
+});
+
+const transferSchema = z.object({
+  transferInfo: z.string().optional().default(""),
+  transferDriverPhone: z.string().optional().default(""),
+  transferMeetingPoint: z.string().optional().default(""),
+});
+
+const insuranceSchema = z.object({
+  insuranceInfo: z.string().optional().default(""),
+  insurancePhone: z.string().optional().default(""),
+});
+
 const createTripSchema = z.object({
   clientId: z.string().uuid(),
   managerId: z.string().uuid(),
   status: z.enum(["draft", "active", "completed"]).default("draft"),
-  flightDate: z.string().datetime().optional(),
-  flightNumber: z.string().max(20).optional(),
-  departureCity: z.string().max(100).optional(),
-  departureAirport: z.string().max(10).optional(),
-  arrivalCity: z.string().max(100).optional(),
-  arrivalAirport: z.string().max(10).optional(),
-  gate: z.string().max(10).optional(),
-  hotelName: z.string().max(255).optional(),
-  hotelAddress: z.string().optional(),
-  hotelPhone: z.string().max(50).optional(),
-  checkinTime: z.string().max(10).optional(),
-  checkoutTime: z.string().max(10).optional(),
-  guideName: z.string().max(255).optional(),
-  guidePhone: z.string().max(50).optional(),
-  transferInfo: z.string().optional(),
-  transferDriverPhone: z.string().max(50).optional(),
-  transferMeetingPoint: z.string().optional(),
-  insuranceInfo: z.string().optional(),
-  insurancePhone: z.string().max(50).optional(),
+  flights: z.array(flightSchema).optional().default([]),
+  hotels: z.array(hotelSchema).optional().default([]),
+  guides: z.array(guideSchema).optional().default([]),
+  transfers: z.array(transferSchema).optional().default([]),
+  insurances: z.array(insuranceSchema).optional().default([]),
   managerPhone: z.string().max(50).optional(),
   notes: z.string().optional(),
 });
@@ -45,20 +67,14 @@ export async function GET(request: NextRequest) {
     const managerId = searchParams.get("managerId");
 
     if (!managerId) {
-      return NextResponse.json(
-        { error: "managerId query param required" },
-        { status: 400 },
-      );
+      return badRequest("managerId query param required");
     }
 
     const trips = await tripRepository.findByManagerId(managerId);
     return NextResponse.json({ data: trips });
   } catch (error) {
     log.error({ error }, "Failed to list trips");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return serverError();
   }
 }
 
@@ -72,24 +88,22 @@ export async function POST(request: NextRequest) {
     const parsed = createTripSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation error", details: parsed.error.flatten() },
-        { status: 400 },
-      );
+      return badRequest("Validation error", parsed.error.flatten());
     }
 
     const data = parsed.data;
+
+    // Sync flightDate from first flight for notification scheduling
+    const firstFlightDate = data.flights?.[0]?.flightDate;
+
     const trip = await tripService.createTrip({
       ...data,
-      flightDate: data.flightDate ? new Date(data.flightDate) : undefined,
+      flightDate: firstFlightDate ? new Date(firstFlightDate) : undefined,
     });
 
     return NextResponse.json({ data: trip }, { status: 201 });
   } catch (error) {
     log.error({ error }, "Failed to create trip");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return serverError();
   }
 }

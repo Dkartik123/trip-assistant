@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { messageRepository, tripRepository } from "@/lib/db/repositories";
 import { createLogger } from "@/lib/logger";
+import { notFound, serverError } from "@/lib/api-error";
 
 const log = createLogger("api:trips:messages");
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const trip = await tripRepository.findById(id);
     if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+      return notFound("Trip not found");
     }
 
     const messages = await messageRepository.findByTripId(id, limit);
@@ -25,9 +26,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ data: messages });
   } catch (error) {
     log.error({ error }, "Failed to get messages");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return serverError();
   }
 }
