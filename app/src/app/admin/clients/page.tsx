@@ -1,22 +1,14 @@
 import { getCurrentManager } from "@/lib/admin-session";
 import { clientRepository } from "@/lib/db/repositories";
-import { db } from "@/lib/db";
-import { trips } from "@/lib/db/schema";
-import { eq, count } from "drizzle-orm";
 import { ClientsListClient } from "./clients-list-client";
 
 export default async function ClientsPage() {
   const manager = await getCurrentManager();
-  const clients = await clientRepository.findByAgencyId(manager.agencyId);
 
-  // Count trips per client
-  const tripCounts = await db
-    .select({ clientId: trips.clientId, count: count() })
-    .from(trips)
-    .where(eq(trips.managerId, manager.id))
-    .groupBy(trips.clientId);
-
-  const tripCountMap = new Map(tripCounts.map((r) => [r.clientId, r.count]));
+  const [clients, tripCountMap] = await Promise.all([
+    clientRepository.findByAgencyId(manager.agencyId),
+    clientRepository.countTripsByManager(manager.id),
+  ]);
 
   const serialized = clients.map((c) => ({
     id: c.id,

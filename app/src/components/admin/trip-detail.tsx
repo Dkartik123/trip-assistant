@@ -36,35 +36,37 @@ import {
   MessageSquare,
   Bot,
   User,
+  MapPin,
+  TrainFront,
+  Footprints,
+  Bus,
 } from "lucide-react";
+import type {
+  FlightItem,
+  HotelItem,
+  GuideItem,
+  TransferItem,
+  TransferType,
+  RouteType,
+  InsuranceItem,
+  AttractionItem,
+} from "@/lib/types/trip-sections";
+import { formatDate, formatTime } from "@/lib/utils/date";
 
 interface TripData {
   id: string;
   clientName: string;
   clientPhone: string | null;
   status: "draft" | "active" | "completed";
-  flightDate: string | null;
-  flightNumber: string | null;
-  departureCity: string | null;
-  departureAirport: string | null;
-  arrivalCity: string | null;
-  arrivalAirport: string | null;
-  gate: string | null;
-  hotelName: string | null;
-  hotelAddress: string | null;
-  hotelPhone: string | null;
-  checkinTime: string | null;
-  checkoutTime: string | null;
-  guideName: string | null;
-  guidePhone: string | null;
-  transferInfo: string | null;
-  transferDriverPhone: string | null;
-  transferMeetingPoint: string | null;
-  insuranceInfo: string | null;
-  insurancePhone: string | null;
   managerPhone: string | null;
   inviteToken: string | null;
   notes: string | null;
+  flights: FlightItem[];
+  hotels: HotelItem[];
+  guides: GuideItem[];
+  transfers: TransferItem[];
+  insurances: InsuranceItem[];
+  attractions: AttractionItem[];
 }
 
 interface MessageData {
@@ -80,24 +82,6 @@ const statusMap = {
   completed: { label: "Завершена", variant: "outline" as const },
 };
 
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatTime(dateStr: string) {
-  return new Date(dateStr).toLocaleTimeString("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
@@ -106,6 +90,13 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
       <span className="text-sm">{value}</span>
     </div>
   );
+}
+
+/** Build a short summary from the first flight (for header subtitle) */
+function tripSubtitle(trip: TripData): string {
+  const f = trip.flights[0];
+  if (!f) return "";
+  return `${f.departureCity} → ${f.arrivalCity} • ${f.flightDate || "—"}`;
 }
 
 export function TripDetailClient({
@@ -118,7 +109,7 @@ export function TripDetailClient({
   messages: MessageData[];
 }) {
   const [copied, setCopied] = useState(false);
-  const botUsername = "trip_assistant_bot"; // TODO: From env
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "TripAssistant123Bot";
   const inviteLink = trip.inviteToken
     ? `https://t.me/${botUsername}?start=${trip.inviteToken}`
     : "";
@@ -151,10 +142,7 @@ export function TripDetailClient({
                 {statusMap[trip.status].label}
               </Badge>
             </div>
-            <p className="text-muted-foreground">
-              {trip.departureCity} → {trip.arrivalCity} •{" "}
-              {formatDate(trip.flightDate)}
-            </p>
+            <p className="text-muted-foreground">{tripSubtitle(trip)}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -199,91 +187,271 @@ export function TripDetailClient({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column — Trip details */}
         <div className="space-y-4 lg:col-span-2">
-          {/* Flight */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Plane className="h-4 w-4" /> Рейс
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-3">
-              <InfoRow label="Номер рейса" value={trip.flightNumber} />
-              <InfoRow
-                label="Дата и время"
-                value={formatDate(trip.flightDate)}
-              />
-              <InfoRow label="Гейт" value={trip.gate} />
-              <InfoRow label="Город вылета" value={trip.departureCity} />
-              <InfoRow label="Аэропорт" value={trip.departureAirport} />
-              <Separator className="sm:col-span-3" />
-              <InfoRow label="Город прибытия" value={trip.arrivalCity} />
-              <InfoRow label="Аэропорт" value={trip.arrivalAirport} />
-            </CardContent>
-          </Card>
+          {/* Flights */}
+          {trip.flights.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Plane className="h-4 w-4" /> Рейсы ({trip.flights.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {trip.flights.map((f, i) => {
+                  const rType = (f.type ?? "flight") as RouteType;
+                  return (
+                  <div key={i}>
+                    {i > 0 && <Separator className="mb-4" />}
+                    <div className="flex items-center gap-2 mb-2">
+                      {rType === "train" ? (
+                        <TrainFront className="h-3.5 w-3.5 text-muted-foreground" />
+                      ) : (
+                        <Plane className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                      <span className="text-xs font-medium uppercase text-muted-foreground">
+                        {rType === "train" ? "Поезд" : "Авиарейс"}
+                      </span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {rType === "flight" && (
+                        <>
+                          <InfoRow label="Номер рейса" value={f.flightNumber} />
+                          <InfoRow label="Дата вылета" value={f.flightDate} />
+                          <InfoRow label="Гейт" value={f.gate} />
+                          <InfoRow label="Город вылета" value={f.departureCity} />
+                          <InfoRow label="Аэропорт" value={f.departureAirport} />
+                          <InfoRow label="Дата прибытия" value={f.arrivalDate} />
+                          <InfoRow label="Город прибытия" value={f.arrivalCity} />
+                          <InfoRow label="Аэропорт" value={f.arrivalAirport} />
+                        </>
+                      )}
+                      {rType === "train" && (
+                        <>
+                          <InfoRow label="Поезд №" value={f.trainNumber} />
+                          <InfoRow label="Дата отправления" value={f.flightDate} />
+                          <InfoRow label="Класс" value={f.carriageClass} />
+                          <InfoRow label="Город отпр." value={f.departureCity} />
+                          <InfoRow label="Станция" value={f.departureStation} />
+                          <InfoRow label="Дата прибытия" value={f.arrivalDate} />
+                          <InfoRow label="Город приб." value={f.arrivalCity} />
+                          <InfoRow label="Станция" value={f.arrivalStation} />
+                          <InfoRow label="Место" value={f.seat} />
+                        </>
+                      )}
+                    </div>
+                    {f.passengers.length > 0 && (
+                      <div className="mt-3">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Пассажиры:
+                        </span>
+                        <div className="mt-1 space-y-1">
+                          {f.passengers.map((p, pi) => (
+                            <div
+                              key={pi}
+                              className="text-sm flex items-center gap-2"
+                            >
+                              <span>{p.name}</span>
+                              {p.baggage && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs font-normal"
+                                >
+                                  {p.baggage}
+                                </Badge>
+                              )}
+                              {p.ticketPrice && (
+                                <span className="text-xs text-muted-foreground">
+                                  {p.ticketPrice}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Hotel */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Hotel className="h-4 w-4" /> Отель
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2">
-              <InfoRow label="Название" value={trip.hotelName} />
-              <InfoRow label="Телефон" value={trip.hotelPhone} />
-              <InfoRow label="Адрес" value={trip.hotelAddress} />
-              <div className="flex gap-6">
-                <InfoRow label="Check-in" value={trip.checkinTime} />
-                <InfoRow label="Check-out" value={trip.checkoutTime} />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Hotels */}
+          {trip.hotels.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Hotel className="h-4 w-4" /> Отели ({trip.hotels.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {trip.hotels.map((h, i) => (
+                  <div key={i}>
+                    {i > 0 && <Separator className="mb-4" />}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <InfoRow label="Название" value={h.hotelName} />
+                      <InfoRow label="Телефон" value={h.hotelPhone} />
+                      <InfoRow label="Адрес" value={h.hotelAddress} />
+                      <InfoRow label="Гость" value={h.guestName} />
+                      <InfoRow label="Check-in" value={h.checkinDate ? `${h.checkinDate} ${h.checkinTime}` : h.checkinTime} />
+                      <InfoRow label="Check-out" value={h.checkoutDate ? `${h.checkoutDate} ${h.checkoutTime}` : h.checkoutTime} />
+                      <InfoRow label="Тип номера" value={h.roomType} />
+                      <InfoRow label="Питание" value={h.mealPlan} />
+                      <InfoRow label="Бронь №" value={h.confirmationNumber} />
+                      <InfoRow label="Цена" value={h.price} />
+                      <InfoRow label="PIN" value={h.pin} />
+                      <InfoRow label="Отмена" value={h.cancellationPolicy} />
+                    </div>
+                    {h.specialRequests && (
+                      <div className="mt-2">
+                        <InfoRow label="Пожелания" value={h.specialRequests} />
+                      </div>
+                    )}
+                    {h.propertyMessages?.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        <span className="text-xs text-muted-foreground">Сообщения от отеля</span>
+                        {h.propertyMessages.map((msg, mi) => (
+                          <p key={mi} className="text-sm whitespace-pre-wrap">{msg}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Guide */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <UserCheck className="h-4 w-4" /> Гид
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <InfoRow label="Имя" value={trip.guideName} />
-                <InfoRow label="Телефон" value={trip.guidePhone} />
-              </CardContent>
-            </Card>
+            {/* Guides */}
+            {trip.guides.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <UserCheck className="h-4 w-4" /> Гиды
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {trip.guides.map((g, i) => (
+                    <div key={i} className="grid gap-2">
+                      <InfoRow label="Имя" value={g.guideName} />
+                      <InfoRow label="Телефон" value={g.guidePhone} />
+                      {i < trip.guides.length - 1 && <Separator />}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Transfer */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Car className="h-4 w-4" /> Трансфер
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <InfoRow label="Описание" value={trip.transferInfo} />
-                <InfoRow label="Водитель" value={trip.transferDriverPhone} />
-                <InfoRow
-                  label="Место встречи"
-                  value={trip.transferMeetingPoint}
-                />
-              </CardContent>
-            </Card>
+            {/* Transfers */}
+            {trip.transfers.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Car className="h-4 w-4" /> Транспорт ({trip.transfers.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {trip.transfers.map((t, i) => {
+                    const tType = (t.type ?? "transfer") as TransferType;
+                    const TypeIcon =
+                      tType === "walking"
+                          ? Footprints
+                          : tType === "rental"
+                            ? Car
+                            : Bus;
+                    const typeLabel =
+                      tType === "walking"
+                          ? "Пешком"
+                          : tType === "rental"
+                            ? "Аренда авто"
+                            : "Трансфер";
+                    return (
+                      <div key={i}>
+                        {i > 0 && <Separator className="mb-3" />}
+                        <div className="flex items-center gap-2 mb-2">
+                          <TypeIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-xs font-medium uppercase text-muted-foreground">
+                            {typeLabel}
+                          </span>
+                        </div>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <InfoRow label="Описание" value={t.transferInfo} />
+                          <InfoRow label="Откуда" value={t.fromLocation} />
+                          <InfoRow label="Куда" value={t.toLocation} />
+                          <InfoRow label="Дата" value={t.date} />
+                          <InfoRow label="Время" value={t.time} />
+                          <InfoRow label="Цена" value={t.price} />
+                          <InfoRow label="Бронь №" value={t.confirmationNumber} />
+
+                          {/* Transfer-specific */}
+                          {tType === "transfer" && (
+                            <>
+                              <InfoRow label="Водитель" value={t.transferDriverPhone} />
+                              <InfoRow label="Место встречи" value={t.transferMeetingPoint} />
+                            </>
+                          )}
+
+                          {/* Rental-specific */}
+                          {tType === "rental" && (
+                            <>
+                              <InfoRow label="Компания" value={t.rentalCompany} />
+                              <InfoRow label="Авто" value={t.carModel} />
+                              <InfoRow label="Получение" value={t.pickupLocation} />
+                              <InfoRow label="Возврат" value={t.dropoffLocation} />
+                              <InfoRow
+                                label="Дата получения"
+                                value={
+                                  t.pickupDate
+                                    ? `${t.pickupDate} ${t.pickupTime}`
+                                    : t.pickupTime
+                                }
+                              />
+                              <InfoRow
+                                label="Дата возврата"
+                                value={
+                                  t.dropoffDate
+                                    ? `${t.dropoffDate} ${t.dropoffTime}`
+                                    : t.dropoffTime
+                                }
+                              />
+                              <InfoRow label="Тип страховки" value={t.rentalInsuranceType} />
+                              <InfoRow label="Телефон страховой" value={t.rentalInsurancePhone} />
+                              <InfoRow label="Детали страховки" value={t.rentalInsuranceInfo} />
+                            </>
+                          )}
+                        </div>
+                        {t.notes && (
+                          <div className="mt-2">
+                            <InfoRow label="Заметки" value={t.notes} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Insurance */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Shield className="h-4 w-4" /> Страховка
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <InfoRow label="Информация" value={trip.insuranceInfo} />
-                <InfoRow label="Телефон" value={trip.insurancePhone} />
-              </CardContent>
-            </Card>
+            {/* Insurances */}
+            {trip.insurances.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Shield className="h-4 w-4" /> Страховки
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {trip.insurances.map((ins, i) => (
+                    <div key={i} className="grid gap-2">
+                      <InfoRow label="Информация" value={ins.insuranceInfo} />
+                      <InfoRow label="Телефон" value={ins.insurancePhone} />
+                      {i < trip.insurances.length - 1 && <Separator />}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Contact */}
             <Card>
@@ -297,6 +465,42 @@ export function TripDetailClient({
               </CardContent>
             </Card>
           </div>
+
+          {/* Attractions */}
+          {trip.attractions.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MapPin className="h-4 w-4" /> Достопримечательности ({trip.attractions.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {trip.attractions.map((a, i) => (
+                  <div key={i}>
+                    {i > 0 && <Separator className="mb-4" />}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <InfoRow label="Название" value={a.name} />
+                      <InfoRow label="Место" value={a.location} />
+                      <InfoRow label="Дата" value={a.date} />
+                      <InfoRow label="Время" value={a.time} />
+                      <InfoRow label="Цена" value={a.price} />
+                      <InfoRow label="Бронь №" value={a.confirmationNumber} />
+                    </div>
+                    {a.description && (
+                      <div className="mt-2">
+                        <InfoRow label="Описание" value={a.description} />
+                      </div>
+                    )}
+                    {a.notes && (
+                      <div className="mt-1">
+                        <InfoRow label="Заметка" value={a.notes} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           {trip.notes && (
             <Card>

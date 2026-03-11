@@ -1,12 +1,14 @@
 import { Context } from "grammy";
 import { createLogger } from "@/lib/logger";
 import { tripRepository, clientRepository } from "@/lib/db/repositories";
+import { tripMessageService, summarizeTripForClient } from "@/lib/services/trip-message.service";
 
 const log = createLogger("bot:start");
 
 /**
  * Handle `/start TRIP_TOKEN` command.
  * Links the Telegram chat to the client/trip via permanent deep-link token.
+ * Sends a beautifully formatted trip summary.
  */
 export async function handleStart(ctx: Context): Promise<void> {
   const chatId = ctx.chat?.id?.toString();
@@ -51,26 +53,15 @@ export async function handleStart(ctx: Context): Promise<void> {
       log.info({ clientId: client.id, chatId }, "Chat linked");
     }
 
-    // Send welcome message with trip summary
-    const flightInfo = trip.flightNumber
-      ? `✈️ ${trip.flightNumber}: ${trip.departureCity || "?"} → ${trip.arrivalCity || "?"}`
-      : "";
-    const dateInfo = trip.flightDate
-      ? `📅 ${new Date(trip.flightDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
-      : "";
-    const hotelInfo = trip.hotelName ? `🏨 ${trip.hotelName}` : "";
+    // Send welcome + full trip summary (AI-summarized verbose parts)
+    const welcome = tripMessageService.formatWelcome(client.name);
+    await ctx.reply(welcome, { parse_mode: "HTML" });
 
-    const welcomeLines = [
-      `👋 Hello, ${client.name}! I'm your travel assistant.`,
-      "",
-      flightInfo,
-      dateInfo,
-      hotelInfo,
-      "",
-      "Ask me anything about your trip! 🌍",
-    ].filter(Boolean);
-
-    await ctx.reply(welcomeLines.join("\n"));
+    const summarized = await summarizeTripForClient(trip);
+    const summaryParts = tripMessageService.formatFullSummary(summarized);
+    for (const part of summaryParts) {
+      await ctx.reply(part, { parse_mode: "HTML" });
+    }
   } catch (error) {
     log.error({ error, chatId, token }, "Failed to handle /start");
     await ctx.reply("⚠️ Something went wrong. Please try again later.");

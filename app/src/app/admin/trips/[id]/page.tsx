@@ -5,6 +5,14 @@ import {
   clientRepository,
 } from "@/lib/db/repositories";
 import { notFound } from "next/navigation";
+import type {
+  FlightItem,
+  HotelItem,
+  GuideItem,
+  TransferItem,
+  InsuranceItem,
+  AttractionItem,
+} from "@/lib/types/trip-sections";
 
 export default async function TripDetailPage({
   params,
@@ -26,28 +34,15 @@ export default async function TripDetailPage({
     clientName: client?.name ?? "—",
     clientPhone: client?.phone ?? null,
     status: trip.status as "draft" | "active" | "completed",
-    flightDate: trip.flightDate?.toISOString() ?? null,
-    flightNumber: trip.flightNumber,
-    departureCity: trip.departureCity,
-    departureAirport: trip.departureAirport,
-    arrivalCity: trip.arrivalCity,
-    arrivalAirport: trip.arrivalAirport,
-    gate: trip.gate,
-    hotelName: trip.hotelName,
-    hotelAddress: trip.hotelAddress,
-    hotelPhone: trip.hotelPhone,
-    checkinTime: trip.checkinTime,
-    checkoutTime: trip.checkoutTime,
-    guideName: trip.guideName,
-    guidePhone: trip.guidePhone,
-    transferInfo: trip.transferInfo,
-    transferDriverPhone: trip.transferDriverPhone,
-    transferMeetingPoint: trip.transferMeetingPoint,
-    insuranceInfo: trip.insuranceInfo,
-    insurancePhone: trip.insurancePhone,
     managerPhone: trip.managerPhone,
     inviteToken: trip.inviteToken,
     notes: trip.notes,
+    flights: (trip.flights as FlightItem[] | null) ?? [],
+    hotels: (trip.hotels as HotelItem[] | null) ?? [],
+    guides: (trip.guides as GuideItem[] | null) ?? [],
+    transfers: (trip.transfers as TransferItem[] | null) ?? [],
+    insurances: (trip.insurances as InsuranceItem[] | null) ?? [],
+    attractions: (trip.attractions as AttractionItem[] | null) ?? [],
   };
 
   const messages = rawMessages

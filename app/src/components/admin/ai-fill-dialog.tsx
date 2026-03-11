@@ -18,14 +18,26 @@ import { Sparkles, Upload, FileText, X, Loader2 } from "lucide-react";
 
 interface AiFillDialogProps {
   onExtracted: (data: Record<string, unknown>) => void;
-  category?: "flight" | "hotel" | "guide" | "transfer" | "insurance";
+  category?: "flight" | "hotel" | "guide" | "transfer" | "insurance" | "attraction";
   compact?: boolean;
+  /** API endpoint to POST to (default: /api/trips/extract) */
+  endpoint?: string;
+  /** Dialog title override */
+  title?: string;
+  /** Dialog description override */
+  description?: string;
+  /** Textarea placeholder override */
+  placeholder?: string;
 }
 
 export function AiFillDialog({
   onExtracted,
   category,
   compact,
+  endpoint = "/api/trips/extract",
+  title = "AI заполнение поездки",
+  description = "Вставьте текст бронирования, e-mail подтверждения или загрузите PDF — AI автоматически заполнит поля формы.",
+  placeholder = "Вставьте текст бронирования, e-mail,\nданные рейса, отеля и т.д.",
 }: AiFillDialogProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -69,7 +81,7 @@ export function AiFillDialog({
         formData.append("category", category);
       }
 
-      const res = await fetch("/api/trips/extract", {
+      const res = await fetch(endpoint, {
         method: "POST",
         body: formData,
       });
@@ -132,10 +144,9 @@ export function AiFillDialog({
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>AI заполнение поездки</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Вставьте текст бронирования, e-mail подтверждения или загрузите PDF
-            — AI автоматически заполнит поля формы.
+            {description}
           </DialogDescription>
         </DialogHeader>
 
@@ -196,9 +207,7 @@ export function AiFillDialog({
           <div className="space-y-2">
             <Label>Текст</Label>
             <Textarea
-              placeholder={
-                "Вставьте текст бронирования, e-mail,\nданные рейса, отеля и т.д."
-              }
+              placeholder={placeholder}
               rows={6}
               value={text}
               onChange={(e) => setText(e.target.value)}

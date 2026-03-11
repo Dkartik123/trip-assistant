@@ -1,6 +1,6 @@
-import { eq, or, desc } from "drizzle-orm";
+import { eq, or, desc, count } from "drizzle-orm";
 import { db } from "../index";
-import { clients } from "../schema";
+import { clients, trips } from "../schema";
 
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
@@ -80,5 +80,21 @@ export const clientRepository = {
 
   async linkTelegramGroup(clientId: string, groupId: string): Promise<Client> {
     return this.update(clientId, { telegramGroupId: groupId });
+  },
+
+  /**
+   * Count trips per client for a given manager.
+   * Returns a Map<clientId, count>.
+   */
+  async countTripsByManager(
+    managerId: string,
+  ): Promise<Map<string, number>> {
+    const rows = await db
+      .select({ clientId: trips.clientId, count: count() })
+      .from(trips)
+      .where(eq(trips.managerId, managerId))
+      .groupBy(trips.clientId);
+
+    return new Map(rows.map((r) => [r.clientId, r.count]));
   },
 };

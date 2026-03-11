@@ -15,6 +15,7 @@ import type {
   GuideItem,
   TransferItem,
   InsuranceItem,
+  AttractionItem,
 } from "@/lib/types/trip-sections";
 import { relations } from "drizzle-orm";
 
@@ -211,6 +212,7 @@ export const trips = pgTable(
     guides: jsonb("guides").$type<GuideItem[]>().default([]),
     transfers: jsonb("transfers").$type<TransferItem[]>().default([]),
     insurances: jsonb("insurances").$type<InsuranceItem[]>().default([]),
+    attractions: jsonb("attractions").$type<AttractionItem[]>().default([]),
 
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -224,6 +226,30 @@ export const trips = pgTable(
     index("trips_client_id_idx").on(table.clientId),
     index("trips_flight_date_idx").on(table.flightDate),
     index("trips_invite_token_idx").on(table.inviteToken),
+  ],
+);
+
+// ─── Trip ↔ Clients (many-to-many) ──────────────────────
+
+export const tripClients = pgTable(
+  "trip_clients",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 50 }).default("traveler"), // traveler, payer, organizer
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("trip_clients_trip_id_idx").on(table.tripId),
+    index("trip_clients_client_id_idx").on(table.clientId),
   ],
 );
 
@@ -295,6 +321,7 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
     references: [agencies.id],
   }),
   trips: many(trips),
+  tripClients: many(tripClients),
 }));
 
 export const tripsRelations = relations(trips, ({ one, many }) => ({
@@ -306,8 +333,20 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
     fields: [trips.managerId],
     references: [managers.id],
   }),
+  tripClients: many(tripClients),
   notifications: many(notifications),
   messages: many(messages),
+}));
+
+export const tripClientsRelations = relations(tripClients, ({ one }) => ({
+  trip: one(trips, {
+    fields: [tripClients.tripId],
+    references: [trips.id],
+  }),
+  client: one(clients, {
+    fields: [tripClients.clientId],
+    references: [clients.id],
+  }),
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({

@@ -29,6 +29,13 @@
       "when": 1773254185805,
       "tag": "0003_worried_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773256335665,
+      "tag": "0004_stormy_naoko",
+      "breakpoints": true
     }
   ]
 }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { tripService } from "@/lib/services";
 import { tripRepository } from "@/lib/db/repositories";
 import { createLogger } from "@/lib/logger";
 import { badRequest, notFound, serverError } from "@/lib/api-error";
+import { updateTripSchema } from "@/lib/schemas/trip.schemas";
 
 const log = createLogger("api:trips:id");
 
@@ -28,62 +28,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-const updateTripSchema = z.object({
-  status: z.enum(["draft", "active", "completed"]).optional(),
-  flights: z
-    .array(
-      z.object({
-        flightDate: z.string().optional().default(""),
-        flightNumber: z.string().optional().default(""),
-        departureCity: z.string().optional().default(""),
-        departureAirport: z.string().optional().default(""),
-        arrivalCity: z.string().optional().default(""),
-        arrivalAirport: z.string().optional().default(""),
-        arrivalDate: z.string().optional().default(""),
-        gate: z.string().optional().default(""),
-      }),
-    )
-    .optional(),
-  hotels: z
-    .array(
-      z.object({
-        hotelName: z.string().optional().default(""),
-        hotelAddress: z.string().optional().default(""),
-        hotelPhone: z.string().optional().default(""),
-        checkinTime: z.string().optional().default(""),
-        checkoutTime: z.string().optional().default(""),
-      }),
-    )
-    .optional(),
-  guides: z
-    .array(
-      z.object({
-        guideName: z.string().optional().default(""),
-        guidePhone: z.string().optional().default(""),
-      }),
-    )
-    .optional(),
-  transfers: z
-    .array(
-      z.object({
-        transferInfo: z.string().optional().default(""),
-        transferDriverPhone: z.string().optional().default(""),
-        transferMeetingPoint: z.string().optional().default(""),
-      }),
-    )
-    .optional(),
-  insurances: z
-    .array(
-      z.object({
-        insuranceInfo: z.string().optional().default(""),
-        insurancePhone: z.string().optional().default(""),
-      }),
-    )
-    .optional(),
-  managerPhone: z.string().max(50).optional(),
-  notes: z.string().optional(),
-});
-
 /**
  * PUT /api/trips/:id — Update trip.
  */
@@ -103,8 +47,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const data = parsed.data;
-
-    // Sync flightDate from first flight for notification scheduling
     const firstFlightDate = data.flights?.[0]?.flightDate;
 
     const trip = await tripService.updateTrip(id, {

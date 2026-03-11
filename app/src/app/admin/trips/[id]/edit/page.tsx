@@ -8,6 +8,7 @@ import type {
   GuideItem,
   TransferItem,
   InsuranceItem,
+  AttractionItem,
 } from "@/lib/types/trip-sections";
 
 export default async function EditTripPage({
@@ -36,6 +37,7 @@ export default async function EditTripPage({
     guides: (trip.guides as GuideItem[] | null) ?? [],
     transfers: (trip.transfers as TransferItem[] | null) ?? [],
     insurances: (trip.insurances as InsuranceItem[] | null) ?? [],
+    attractions: (trip.attractions as AttractionItem[] | null) ?? [],
     notes: trip.notes ?? "",
   };
 
