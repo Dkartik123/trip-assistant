@@ -135,6 +135,20 @@ function EditClientDialog({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Controlled state for all Select fields
+  const [language, setLanguage] = useState(client.language);
+  const [timezone, setTimezone] = useState(client.timezone);
+  const [preferredMessenger, setPreferredMessenger] = useState(
+    client.preferredMessenger ?? "_none",
+  );
+  const [clientStatus, setClientStatus] = useState(client.clientStatus);
+  const [voiceEnabled, setVoiceEnabled] = useState(
+    client.voiceEnabled ? "true" : "false",
+  );
+  const [notificationEnabled, setNotificationEnabled] = useState(
+    client.notificationEnabled ? "true" : "false",
+  );
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
@@ -147,19 +161,19 @@ function EditClientDialog({
       phone: (form.get("phone") as string) || null,
       email: (form.get("email") as string) || null,
       country: (form.get("country") as string) || null,
-      language: form.get("language") as string,
-      timezone: form.get("timezone") as string,
+      language,
+      timezone,
       telegramUsername: (form.get("telegramUsername") as string) || null,
       whatsappPhone: (form.get("whatsappPhone") as string) || null,
       preferredMessenger:
-        (form.get("preferredMessenger") as string) || null,
-      clientStatus: form.get("clientStatus") as string,
+        preferredMessenger === "_none" ? null : preferredMessenger,
+      clientStatus,
       source: (form.get("source") as string) || null,
       notes: (form.get("notes") as string) || null,
       preferredContactTime:
         (form.get("preferredContactTime") as string) || null,
-      voiceEnabled: form.get("voiceEnabled") === "true",
-      notificationEnabled: form.get("notificationEnabled") === "true",
+      voiceEnabled: voiceEnabled === "true",
+      notificationEnabled: notificationEnabled === "true",
       emergencyContactName:
         (form.get("emergencyContactName") as string) || null,
       emergencyContactPhone:
@@ -271,7 +285,7 @@ function EditClientDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Язык общения</Label>
-                <Select name="language" defaultValue={client.language}>
+                <Select value={language} onValueChange={(v) => v && setLanguage(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -286,7 +300,7 @@ function EditClientDialog({
               </div>
               <div className="space-y-2">
                 <Label>Часовой пояс</Label>
-                <Select name="timezone" defaultValue={client.timezone}>
+                <Select value={timezone} onValueChange={(v) => v && setTimezone(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -330,13 +344,14 @@ function EditClientDialog({
             <div className="space-y-2">
               <Label>Предпочтительный канал</Label>
               <Select
-                name="preferredMessenger"
-                defaultValue={client.preferredMessenger ?? ""}
+                value={preferredMessenger}
+                onValueChange={(v) => setPreferredMessenger(v ?? "_none")}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Не выбрано" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="_none">Не выбрано</SelectItem>
                   <SelectItem value="telegram">Telegram</SelectItem>
                   <SelectItem value="whatsapp">WhatsApp</SelectItem>
                   <SelectItem value="sms">SMS</SelectItem>
@@ -356,7 +371,7 @@ function EditClientDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Статус клиента</Label>
-                <Select name="clientStatus" defaultValue={client.clientStatus}>
+                <Select value={clientStatus} onValueChange={(v) => v && setClientStatus(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -406,8 +421,8 @@ function EditClientDialog({
               <div className="space-y-2">
                 <Label>Голосовые сообщения</Label>
                 <Select
-                  name="voiceEnabled"
-                  defaultValue={client.voiceEnabled ? "true" : "false"}
+                  value={voiceEnabled}
+                  onValueChange={(v) => v && setVoiceEnabled(v)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -421,8 +436,8 @@ function EditClientDialog({
               <div className="space-y-2">
                 <Label>Уведомления</Label>
                 <Select
-                  name="notificationEnabled"
-                  defaultValue={client.notificationEnabled ? "true" : "false"}
+                  value={notificationEnabled}
+                  onValueChange={(v) => v && setNotificationEnabled(v)}
                 >
                   <SelectTrigger>
                     <SelectValue />
