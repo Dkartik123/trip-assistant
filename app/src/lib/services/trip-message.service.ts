@@ -445,6 +445,89 @@ export const tripMessageService = {
       `I'm your personal travel assistant. Here's everything about your upcoming trip:`,
     ]);
   },
+
+  /**
+   * Compare old and new trip, format only the sections that changed.
+   * Returns null if nothing changed.
+   */
+  formatChangedSections(oldTrip: Trip, newTrip: Trip): string[] | null {
+    const sections: string[] = [];
+
+    const changed = (oldVal: unknown, newVal: unknown): boolean =>
+      JSON.stringify(oldVal ?? []) !== JSON.stringify(newVal ?? []);
+
+    // Flights
+    const flights = asFlights(newTrip.flights);
+    if (changed(oldTrip.flights, newTrip.flights) && flights.length > 0) {
+      const lines = [`\n✈️ ${b("FLIGHTS")}`];
+      flights.forEach((f, idx) => lines.push(formatFlightItem(f, idx)));
+      sections.push(lines.join("\n"));
+    }
+
+    // Hotels
+    const hotels = asHotels(newTrip.hotels);
+    if (changed(oldTrip.hotels, newTrip.hotels) && hotels.length > 0) {
+      const lines = [`\n🏨 ${b("HOTELS")}`];
+      hotels.forEach((h, idx) => lines.push(formatHotelItem(h, idx)));
+      sections.push(lines.join("\n"));
+    }
+
+    // Guides
+    const guides = asGuides(newTrip.guides);
+    if (changed(oldTrip.guides, newTrip.guides) && guides.length > 0) {
+      const lines = [`\n🧑‍💼 ${b("GUIDES")}`];
+      guides.forEach((g, idx) => lines.push(formatGuideItem(g, idx)));
+      sections.push(lines.join("\n"));
+    }
+
+    // Transfers
+    const transfers = asTransfers(newTrip.transfers);
+    if (changed(oldTrip.transfers, newTrip.transfers) && transfers.length > 0) {
+      const lines = [`\n🚐 ${b("TRANSPORT")}`];
+      transfers.forEach((t, idx) => lines.push(formatTransferItem(t, idx)));
+      sections.push(lines.join("\n"));
+    }
+
+    // Insurances
+    const insurances = asInsurances(newTrip.insurances);
+    if (changed(oldTrip.insurances, newTrip.insurances) && insurances.length > 0) {
+      const lines = [`\n🛡️ ${b("INSURANCE")}`];
+      insurances.forEach((ins, idx) => lines.push(formatInsuranceItem(ins, idx)));
+      sections.push(lines.join("\n"));
+    }
+
+    // Attractions
+    const attractions = asAttractions(newTrip.attractions);
+    if (changed(oldTrip.attractions, newTrip.attractions) && attractions.length > 0) {
+      const lines = [`\n🎯 ${b("ACTIVITIES & ATTRACTIONS")}`];
+      attractions.forEach((a, idx) => lines.push(formatAttractionItem(a, idx)));
+      sections.push(lines.join("\n"));
+    }
+
+    // Manager phone
+    if ((oldTrip.managerPhone ?? "") !== (newTrip.managerPhone ?? "")) {
+      if (newTrip.managerPhone) {
+        sections.push(kv("📞", "Manager", newTrip.managerPhone));
+      } else {
+        sections.push(`📞 ${i("Manager phone removed")}`);
+      }
+    }
+
+    // Notes
+    if ((oldTrip.notes ?? "") !== (newTrip.notes ?? "")) {
+      if (newTrip.notes) {
+        sections.push(`\n📝 ${b("Notes")}\n${esc(newTrip.notes)}`);
+      } else {
+        sections.push(`📝 ${i("Notes removed")}`);
+      }
+    }
+
+    if (sections.length === 0) return null;
+
+    const header = `🔄 ${b("Trip updated!")}\nYour manager made the following changes:`;
+    const full = [header, ...sections].join("\n");
+    return splitMessages(full);
+  },
 };
 
 // ─── Telegram message splitter (4096 char limit) ────────
@@ -497,6 +580,59 @@ Keep ONLY what matters to the traveler: key rules, important dates/times, action
 Remove marketing fluff, legal boilerplate, and repetition.
 Use bullet points (•) for clarity. Max 4-6 bullet points.
 Do NOT add any greeting or sign-off. Return ONLY the summary text.`;
+
+const TRANSLATE_PROMPT = `You are a translator for a travel assistant Telegram bot.
+Translate the following HTML message to {LANG}.
+
+Rules:
+- Preserve ALL HTML tags exactly (<b>, </b>, <i>, </i>).
+- Preserve ALL emojis exactly.
+- Do NOT translate proper names (person names, hotel names, airline names, city names, airport codes, station names).
+- Do NOT translate numbers, dates, times, phone numbers, confirmation codes, PINs.
+- Do NOT translate currency amounts — keep the original format (e.g. "148.91 EUR").
+- Translate section headers, labels, descriptions, instructions, and notes.
+- Keep the same formatting and line breaks.
+- Return ONLY the translated message, nothing else.`;
+
+/**
+ * Translate a single HTML message to the target language via Gemini.
+ * Returns the original text on AI failure (graceful degradation).
+ * Skips translation if targetLang is empty or "en" (messages are already in English by default).
+ */
+async function aiTranslate(text: string, targetLang: string): Promise<string> {
+  if (!text || !targetLang) return text;
+  try {
+    const client = getGeminiClient();
+    const prompt = TRANSLATE_PROMPT.replace("{LANG}", targetLang);
+    const res = await client.models.generateContent({
+      model: "gemini-2.0-flash",
+      config: { maxOutputTokens: 4096, systemInstruction: prompt },
+      contents: [{ role: "user", parts: [{ text }] }],
+    });
+    return res.text?.trim() || text;
+  } catch (err) {
+    log.warn({ err, targetLang }, "AI translate failed, using original text");
+    return text;
+  }
+}
+
+/**
+ * Translate an array of Telegram HTML messages to the client's language.
+ * Skips translation if lang is falsy.
+ */
+export async function translateParts(parts: string[], lang: string | null | undefined): Promise<string[]> {
+  if (!lang) return parts;
+  return Promise.all(parts.map((p) => aiTranslate(p, lang)));
+}
+
+/**
+ * Translate a single Telegram HTML message to the client's language.
+ * Skips translation if lang is falsy.
+ */
+export async function translateMessage(text: string, lang: string | null | undefined): Promise<string> {
+  if (!lang) return text;
+  return aiTranslate(text, lang);
+}
 
 /**
  * Summarize a verbose text (hotel message, insurance policy) via Gemini.

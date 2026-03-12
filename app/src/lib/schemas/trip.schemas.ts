@@ -57,7 +57,7 @@ export const guideSchema = z.object({
 });
 
 export const transferSchema = z.object({
-  type: z.enum(["transfer", "rental", "walking"]).optional().default("transfer"),
+  type: z.enum(["transfer", "rental", "walking"]).catch("transfer"),
   // Common
   transferInfo: z.string().optional().default(""),
   date: z.string().optional().default(""),
@@ -109,8 +109,8 @@ const baseTripSections = {
   transfers: z.array(transferSchema).optional().default([]),
   insurances: z.array(insuranceSchema).optional().default([]),
   attractions: z.array(attractionSchema).optional().default([]),
-  managerPhone: z.string().max(50).optional(),
-  notes: z.string().optional(),
+  managerPhone: z.string().max(50).optional().nullable(),
+  notes: z.string().optional().nullable(),
 };
 
 export const createTripSchema = z.object({
@@ -128,6 +128,6 @@ export const updateTripSchema = z.object({
   transfers: z.array(transferSchema).optional(),
   insurances: z.array(insuranceSchema).optional(),
   attractions: z.array(attractionSchema).optional(),
-  managerPhone: z.string().max(50).optional(),
-  notes: z.string().optional(),
+  managerPhone: z.string().max(50).optional().nullable(),
+  notes: z.string().optional().nullable(),
 });

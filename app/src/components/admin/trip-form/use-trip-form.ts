@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type {
@@ -149,41 +149,119 @@ export function useTripForm(opts: {
   const { initialData, isEdit, tripId, managerId, initialClients } = opts;
   const router = useRouter();
 
+  // ─── localStorage cache key ──────────────────────────
+  const cacheKey = isEdit
+    ? `trip-form-edit-${tripId}`
+    : "trip-form-new";
+
+  /** Read cached form data (only on first render) */
+  function readCache(): Partial<TripFormInitialData> | null {
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Merge: use cache if available, else initialData */
+  function init<T>(cacheVal: T | undefined, serverVal: T | undefined, fallback: T): T {
+    return cacheVal !== undefined ? cacheVal : (serverVal !== undefined ? serverVal : fallback);
+  }
+
+  // On first render, check if there's a cached version newer than server data
+  const cached = useRef<Partial<TripFormInitialData> | null>(null);
+  if (cached.current === null) {
+    cached.current = readCache() ?? {};
+  }
+  const c = cached.current;
+  const hasCache = c && Object.keys(c).length > 0;
+
   // Clients list (can grow via inline creation)
   const [clientList, setClientList] = useState<ClientOption[]>(initialClients);
 
-  // Core form state
-  const [clientId, setClientId] = useState(initialData?.clientId ?? "");
-  const [status, setStatus] = useState(initialData?.status ?? "draft");
+  // Core form state — prefer cache over server data
+  const [clientId, setClientId] = useState(
+    init(c.clientId, initialData?.clientId, ""),
+  );
+  const [status, setStatus] = useState(
+    init(c.status, initialData?.status, "draft"),
+  );
   const [managerPhone, setManagerPhone] = useState(
-    initialData?.managerPhone ?? "",
+    init(c.managerPhone, initialData?.managerPhone, ""),
   );
 
   // Section arrays
   const [flights, setFlights] = useState<FlightItem[]>(
-    initialData?.flights ?? [],
+    init(c.flights, initialData?.flights, []),
   );
   const [hotels, setHotels] = useState<HotelItem[]>(
-    initialData?.hotels ?? [],
+    init(c.hotels, initialData?.hotels, []),
   );
   const [guides, setGuides] = useState<GuideItem[]>(
-    initialData?.guides ?? [],
+    init(c.guides, initialData?.guides, []),
   );
   const [transfers, setTransfers] = useState<TransferItem[]>(
-    initialData?.transfers ?? [],
+    init(c.transfers, initialData?.transfers, []),
   );
   const [insurances, setInsurances] = useState<InsuranceItem[]>(
-    initialData?.insurances ?? [],
+    init(c.insurances, initialData?.insurances, []),
   );
   const [attractions, setAttractions] = useState<AttractionItem[]>(
-    initialData?.attractions ?? [],
+    init(c.attractions, initialData?.attractions, []),
   );
   const [noteCards, setNoteCards] = useState<NoteItem[]>(() =>
-    parseNotes(initialData?.notes ?? ""),
+    parseNotes(init(c.notes, initialData?.notes, "")),
   );
+
+  // Show "restored from cache" toast once
+  const [cacheRestored, setCacheRestored] = useState(false);
+  useEffect(() => {
+    if (hasCache && !cacheRestored) {
+      setCacheRestored(true);
+      toast.info("Восстановлены несохранённые изменения", { duration: 3000 });
+    }
+  }, [hasCache, cacheRestored]);
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // ─── Auto-save to localStorage (debounced) ───────────
+
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const saveToCache = useCallback(() => {
+    const snapshot: TripFormInitialData = {
+      clientId,
+      status,
+      managerPhone,
+      flights,
+      hotels,
+      guides,
+      transfers,
+      insurances,
+      attractions,
+      notes: serializeNotes(noteCards),
+    };
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(snapshot));
+    } catch { /* ignore quota errors */ }
+  }, [clientId, status, managerPhone, flights, hotels, guides, transfers, insurances, attractions, noteCards, cacheKey]);
+
+  // Debounce: save 500ms after last change
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(saveToCache, 500);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [saveToCache]);
+
+  /** Clear cache (called after successful save) */
+  function clearCache() {
+    try { localStorage.removeItem(cacheKey); } catch { /* noop */ }
+  }
 
   // ─── Global AI fill ──────────────────────────────────
 
@@ -226,14 +304,14 @@ export function useTripForm(opts: {
         clientId,
         managerId,
         status: status as "draft" | "active" | "completed",
-        managerPhone: managerPhone || undefined,
+        managerPhone: managerPhone || null,
         flights: flights.filter((f) => hasValues(f)),
         hotels: hotels.filter((h) => hasValues(h)),
         guides: guides.filter((g) => hasValues(g)),
         transfers: transfers.filter((t) => hasValues(t)),
         insurances: insurances.filter((i) => hasValues(i)),
         attractions: attractions.filter((a) => hasValues(a)),
-        notes: serializeNotes(noteCards) || undefined,
+        notes: serializeNotes(noteCards) || null,
       };
 
       const url = isEdit ? `/api/trips/${tripId}` : "/api/trips";
@@ -251,6 +329,7 @@ export function useTripForm(opts: {
       }
 
       const { data: savedTrip } = await res.json();
+      clearCache();
       toast.success(isEdit ? "Поездка обновлена" : "Поездка создана");
       router.push(`/admin/trips/${savedTrip.id}`);
       router.refresh();
@@ -293,6 +372,7 @@ export function useTripForm(opts: {
     // Actions
     applyExtracted,
     handleSubmit,
+    clearCache,
     router,
   };
 }

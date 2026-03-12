@@ -7,6 +7,7 @@ import {
   type Trip,
   type NewTrip,
 } from "@/lib/db/repositories";
+import { tripMessageService, translateParts } from "./trip-message.service";
 
 const log = createLogger("trip-service");
 
@@ -54,7 +55,46 @@ export const tripService = {
       await this.scheduleNotifications(trip);
     }
 
+    // Push only changed sections to Telegram (fire-and-forget)
+    if (oldTrip) {
+      this.notifyTelegramClient(oldTrip, trip).catch((err) =>
+        log.warn({ err, tripId: id }, "Failed to push trip update to Telegram"),
+      );
+    }
+
     return trip;
+  },
+
+  /**
+   * Send only the changed sections to the client's Telegram chat.
+   * Skipped silently if the client has no linked chat or nothing changed.
+   */
+  async notifyTelegramClient(oldTrip: Trip, newTrip: Trip): Promise<void> {
+    const client = await clientRepository.findById(newTrip.clientId);
+    if (!client) return;
+
+    const chatId = client.telegramChatId || client.telegramGroupId;
+    if (!chatId) return;
+
+    // Build diff message — only changed sections
+    const parts = tripMessageService.formatChangedSections(oldTrip, newTrip);
+    if (!parts) {
+      log.debug({ tripId: newTrip.id }, "No section changes detected, skipping notification");
+      return;
+    }
+
+    // Translate to client's language
+    const translated = await translateParts(parts, client.language);
+
+    // Dynamically import bot to avoid circular dependency
+    const { getBot } = await import("@/lib/bot");
+    const bot = getBot();
+
+    for (const part of translated) {
+      await bot.api.sendMessage(chatId, part, { parse_mode: "HTML" });
+    }
+
+    log.info({ tripId: newTrip.id, chatId }, "Pushed trip changes to Telegram");
   },
 
   async activateTrip(id: string): Promise<Trip> {

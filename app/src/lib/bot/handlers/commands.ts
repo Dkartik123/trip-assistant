@@ -1,14 +1,14 @@
 import { Context } from "grammy";
 import { createLogger } from "@/lib/logger";
-import { clientRepository, tripRepository } from "@/lib/db/repositories";
-import { tripMessageService, summarizeTripForClient } from "@/lib/services/trip-message.service";
+import { clientRepository, tripRepository, type Trip, type Client } from "@/lib/db/repositories";
+import { tripMessageService, summarizeTripForClient, translateParts, translateMessage } from "@/lib/services/trip-message.service";
 
 const log = createLogger("bot:commands");
 
 /**
- * Helper: resolve the active trip for the current chat.
+ * Helper: resolve the active trip + client for the current chat.
  */
-async function resolveTrip(ctx: Context) {
+async function resolveTrip(ctx: Context): Promise<{ trip: Trip; client: Client } | null> {
   const chatId = ctx.chat?.id?.toString();
   if (!chatId) return null;
 
@@ -30,7 +30,7 @@ async function resolveTrip(ctx: Context) {
     return null;
   }
 
-  return trip;
+  return { trip, client };
 }
 
 /**
@@ -38,13 +38,15 @@ async function resolveTrip(ctx: Context) {
  */
 export async function handleTripCommand(ctx: Context): Promise<void> {
   try {
-    const trip = await resolveTrip(ctx);
-    if (!trip) return;
+    const result = await resolveTrip(ctx);
+    if (!result) return;
+    const { trip, client } = result;
 
     await ctx.replyWithChatAction("typing");
     const summarized = await summarizeTripForClient(trip);
     const parts = tripMessageService.formatFullSummary(summarized);
-    for (const part of parts) {
+    const translated = await translateParts(parts, client.language);
+    for (const part of translated) {
       await ctx.reply(part, { parse_mode: "HTML" });
     }
   } catch (error) {
@@ -58,9 +60,13 @@ export async function handleTripCommand(ctx: Context): Promise<void> {
  */
 export async function handleFlightCommand(ctx: Context): Promise<void> {
   try {
-    const trip = await resolveTrip(ctx);
-    if (!trip) return;
-    await ctx.reply(tripMessageService.formatFlights(trip), { parse_mode: "HTML" });
+    const result = await resolveTrip(ctx);
+    if (!result) return;
+    const { trip, client } = result;
+
+    const text = tripMessageService.formatFlights(trip);
+    const translated = await translateMessage(text, client.language);
+    await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /flight command");
     await ctx.reply("⚠️ Could not load flight info.");
@@ -72,11 +78,15 @@ export async function handleFlightCommand(ctx: Context): Promise<void> {
  */
 export async function handleHotelCommand(ctx: Context): Promise<void> {
   try {
-    const trip = await resolveTrip(ctx);
-    if (!trip) return;
+    const result = await resolveTrip(ctx);
+    if (!result) return;
+    const { trip, client } = result;
+
     await ctx.replyWithChatAction("typing");
     const summarized = await summarizeTripForClient(trip);
-    await ctx.reply(tripMessageService.formatHotels(summarized), { parse_mode: "HTML" });
+    const text = tripMessageService.formatHotels(summarized);
+    const translated = await translateMessage(text, client.language);
+    await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /hotel command");
     await ctx.reply("⚠️ Could not load hotel info.");
@@ -88,9 +98,13 @@ export async function handleHotelCommand(ctx: Context): Promise<void> {
  */
 export async function handleGuideCommand(ctx: Context): Promise<void> {
   try {
-    const trip = await resolveTrip(ctx);
-    if (!trip) return;
-    await ctx.reply(tripMessageService.formatGuides(trip), { parse_mode: "HTML" });
+    const result = await resolveTrip(ctx);
+    if (!result) return;
+    const { trip, client } = result;
+
+    const text = tripMessageService.formatGuides(trip);
+    const translated = await translateMessage(text, client.language);
+    await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /guide command");
     await ctx.reply("⚠️ Could not load guide info.");
@@ -102,11 +116,15 @@ export async function handleGuideCommand(ctx: Context): Promise<void> {
  */
 export async function handleDocsCommand(ctx: Context): Promise<void> {
   try {
-    const trip = await resolveTrip(ctx);
-    if (!trip) return;
+    const result = await resolveTrip(ctx);
+    if (!result) return;
+    const { trip, client } = result;
+
     await ctx.replyWithChatAction("typing");
     const summarized = await summarizeTripForClient(trip);
-    await ctx.reply(tripMessageService.formatDocs(summarized), { parse_mode: "HTML" });
+    const text = tripMessageService.formatDocs(summarized);
+    const translated = await translateMessage(text, client.language);
+    await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /docs command");
     await ctx.reply("⚠️ Could not load documents.");

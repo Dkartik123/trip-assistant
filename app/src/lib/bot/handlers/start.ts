@@ -1,7 +1,7 @@
 import { Context } from "grammy";
 import { createLogger } from "@/lib/logger";
 import { tripRepository, clientRepository } from "@/lib/db/repositories";
-import { tripMessageService, summarizeTripForClient } from "@/lib/services/trip-message.service";
+import { tripMessageService, summarizeTripForClient, translateParts, translateMessage } from "@/lib/services/trip-message.service";
 
 const log = createLogger("bot:start");
 
@@ -55,11 +55,13 @@ export async function handleStart(ctx: Context): Promise<void> {
 
     // Send welcome + full trip summary (AI-summarized verbose parts)
     const welcome = tripMessageService.formatWelcome(client.name);
-    await ctx.reply(welcome, { parse_mode: "HTML" });
+    const translatedWelcome = await translateMessage(welcome, client.language);
+    await ctx.reply(translatedWelcome, { parse_mode: "HTML" });
 
     const summarized = await summarizeTripForClient(trip);
     const summaryParts = tripMessageService.formatFullSummary(summarized);
-    for (const part of summaryParts) {
+    const translatedParts = await translateParts(summaryParts, client.language);
+    for (const part of translatedParts) {
       await ctx.reply(part, { parse_mode: "HTML" });
     }
   } catch (error) {
