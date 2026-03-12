@@ -1,36 +1,45 @@
 import { Context } from "grammy";
 import { createLogger } from "@/lib/logger";
-import { clientRepository, tripRepository, type Trip, type Client } from "@/lib/db/repositories";
+import { clientRepository, tripRepository, subscriberRepository, type Trip, type Client } from "@/lib/db/repositories";
 import { tripMessageService, summarizeTripForClient, translateParts, translateMessage } from "@/lib/services/trip-message.service";
 
 const log = createLogger("bot:commands");
 
 /**
- * Helper: resolve the active trip + client for the current chat.
+ * Helper: resolve the active trip + language for the current chat.
+ * First checks if this chatId belongs to a registered client (legacy flow).
+ * Then falls back to checking trip_subscribers (multi-user flow).
  */
-async function resolveTrip(ctx: Context): Promise<{ trip: Trip; client: Client } | null> {
+async function resolveTrip(ctx: Context): Promise<{ trip: Trip; language: string } | null> {
   const chatId = ctx.chat?.id?.toString();
   if (!chatId) return null;
 
+  // 1) Try legacy client-based lookup
   const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
   const client = isGroup
     ? await clientRepository.findByTelegramGroupId(chatId)
     : await clientRepository.findByTelegramChatId(chatId);
 
-  if (!client) {
-    await ctx.reply(
-      "🔗 I don't recognize you yet. Please use the link from your travel agency to connect.",
-    );
-    return null;
+  if (client) {
+    const trip = await tripRepository.findByClientId(client.id);
+    if (trip) {
+      return { trip, language: client.language ?? "en" };
+    }
   }
 
-  const trip = await tripRepository.findByClientId(client.id);
-  if (!trip) {
-    await ctx.reply("📭 No active trip found. Contact your travel agency.");
-    return null;
+  // 2) Fall back to subscriber lookup
+  const subscriber = await subscriberRepository.findByChatId(chatId);
+  if (subscriber) {
+    const trip = await tripRepository.findById(subscriber.tripId);
+    if (trip) {
+      return { trip, language: subscriber.language ?? "en" };
+    }
   }
 
-  return { trip, client };
+  await ctx.reply(
+    "🔗 I don't recognize you yet. Please use the link from your travel agency to connect.",
+  );
+  return null;
 }
 
 /**
@@ -40,12 +49,12 @@ export async function handleTripCommand(ctx: Context): Promise<void> {
   try {
     const result = await resolveTrip(ctx);
     if (!result) return;
-    const { trip, client } = result;
+    const { trip, language } = result;
 
     await ctx.replyWithChatAction("typing");
     const summarized = await summarizeTripForClient(trip);
     const parts = tripMessageService.formatFullSummary(summarized);
-    const translated = await translateParts(parts, client.language);
+    const translated = await translateParts(parts, language);
     for (const part of translated) {
       await ctx.reply(part, { parse_mode: "HTML" });
     }
@@ -62,10 +71,10 @@ export async function handleFlightCommand(ctx: Context): Promise<void> {
   try {
     const result = await resolveTrip(ctx);
     if (!result) return;
-    const { trip, client } = result;
+    const { trip, language } = result;
 
     const text = tripMessageService.formatFlights(trip);
-    const translated = await translateMessage(text, client.language);
+    const translated = await translateMessage(text, language);
     await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /flight command");
@@ -80,12 +89,12 @@ export async function handleHotelCommand(ctx: Context): Promise<void> {
   try {
     const result = await resolveTrip(ctx);
     if (!result) return;
-    const { trip, client } = result;
+    const { trip, language } = result;
 
     await ctx.replyWithChatAction("typing");
     const summarized = await summarizeTripForClient(trip);
     const text = tripMessageService.formatHotels(summarized);
-    const translated = await translateMessage(text, client.language);
+    const translated = await translateMessage(text, language);
     await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /hotel command");
@@ -100,10 +109,10 @@ export async function handleGuideCommand(ctx: Context): Promise<void> {
   try {
     const result = await resolveTrip(ctx);
     if (!result) return;
-    const { trip, client } = result;
+    const { trip, language } = result;
 
     const text = tripMessageService.formatGuides(trip);
-    const translated = await translateMessage(text, client.language);
+    const translated = await translateMessage(text, language);
     await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /guide command");
@@ -118,12 +127,12 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
   try {
     const result = await resolveTrip(ctx);
     if (!result) return;
-    const { trip, client } = result;
+    const { trip, language } = result;
 
     await ctx.replyWithChatAction("typing");
     const summarized = await summarizeTripForClient(trip);
     const text = tripMessageService.formatDocs(summarized);
-    const translated = await translateMessage(text, client.language);
+    const translated = await translateMessage(text, language);
     await ctx.reply(translated, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error }, "Failed /docs command");

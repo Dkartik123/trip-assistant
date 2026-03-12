@@ -46,7 +46,11 @@ export const messageChannelEnum = pgEnum("message_channel", [
   "whatsapp",
 ]);
 
-export const messageRoleEnum = pgEnum("message_role", ["user", "assistant"]);
+export const messageRoleEnum = pgEnum("message_role", [
+  "user",
+  "assistant",
+  "operator",
+]);
 
 export const messageContentTypeEnum = pgEnum("message_content_type", [
   "text",
@@ -253,6 +257,28 @@ export const tripClients = pgTable(
   ],
 );
 
+// ─── Trip Subscribers (Telegram users following the trip) ─
+
+export const tripSubscribers = pgTable(
+  "trip_subscribers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    telegramChatId: varchar("telegram_chat_id", { length: 50 }).notNull(),
+    name: varchar("name", { length: 255 }),
+    language: varchar("language", { length: 10 }).default("en"),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("trip_subscribers_trip_id_idx").on(table.tripId),
+    index("trip_subscribers_chat_id_idx").on(table.telegramChatId),
+  ],
+);
+
 // ─── Notifications ───────────────────────────────────────
 
 export const notifications = pgTable(
@@ -334,6 +360,7 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
     references: [managers.id],
   }),
   tripClients: many(tripClients),
+  subscribers: many(tripSubscribers),
   notifications: many(notifications),
   messages: many(messages),
 }));
@@ -346,6 +373,13 @@ export const tripClientsRelations = relations(tripClients, ({ one }) => ({
   client: one(clients, {
     fields: [tripClients.clientId],
     references: [clients.id],
+  }),
+}));
+
+export const tripSubscribersRelations = relations(tripSubscribers, ({ one }) => ({
+  trip: one(trips, {
+    fields: [tripSubscribers.tripId],
+    references: [trips.id],
   }),
 }));
 

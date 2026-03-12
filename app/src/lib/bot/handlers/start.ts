@@ -1,13 +1,24 @@
 import { Context } from "grammy";
 import { createLogger } from "@/lib/logger";
-import { tripRepository, clientRepository } from "@/lib/db/repositories";
+import { tripRepository, clientRepository, subscriberRepository } from "@/lib/db/repositories";
 import { tripMessageService, summarizeTripForClient, translateParts, translateMessage } from "@/lib/services/trip-message.service";
 
 const log = createLogger("bot:start");
 
 /**
+ * Build a display name from Telegram context.
+ */
+function getTelegramName(ctx: Context): string {
+  const from = ctx.from;
+  if (!from) return "Unknown";
+  const parts = [from.first_name, from.last_name].filter(Boolean);
+  return parts.join(" ") || from.username || "Unknown";
+}
+
+/**
  * Handle `/start TRIP_TOKEN` command.
  * Links the Telegram chat to the client/trip via permanent deep-link token.
+ * Also adds the user as a trip subscriber so multiple people can follow one trip.
  * Sends a beautifully formatted trip summary.
  */
 export async function handleStart(ctx: Context): Promise<void> {
@@ -42,25 +53,44 @@ export async function handleStart(ctx: Context): Promise<void> {
       return;
     }
 
-    // Link Telegram chat to client (permanent binding)
+    // Link Telegram chat to primary client (backward-compat — only if this is the primary client's chat)
     const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+    const isPrimaryClient = !client.telegramChatId && !client.telegramGroupId;
 
-    if (isGroup) {
-      await clientRepository.linkTelegramGroup(client.id, chatId);
-      log.info({ clientId: client.id, groupId: chatId }, "Group linked");
-    } else {
-      await clientRepository.linkTelegramChat(client.id, chatId);
-      log.info({ clientId: client.id, chatId }, "Chat linked");
+    if (isPrimaryClient) {
+      if (isGroup) {
+        await clientRepository.linkTelegramGroup(client.id, chatId);
+        log.info({ clientId: client.id, groupId: chatId }, "Group linked");
+      } else {
+        await clientRepository.linkTelegramChat(client.id, chatId);
+        log.info({ clientId: client.id, chatId }, "Chat linked");
+      }
     }
 
+    // Add this user as a trip subscriber (idempotent)
+    const subscriberName = getTelegramName(ctx);
+    const subscriber = await subscriberRepository.subscribe({
+      tripId: trip.id,
+      telegramChatId: chatId,
+      name: subscriberName,
+      language: client.language ?? "en",
+    });
+
+    const isNewSubscriber = new Date().getTime() - new Date(subscriber.joinedAt).getTime() < 5000;
+    log.info(
+      { tripId: trip.id, chatId, name: subscriberName, isNew: isNewSubscriber },
+      isNewSubscriber ? "New subscriber joined trip" : "Existing subscriber reconnected",
+    );
+
     // Send welcome + full trip summary (AI-summarized verbose parts)
+    const lang = subscriber.language ?? client.language;
     const welcome = tripMessageService.formatWelcome(client.name);
-    const translatedWelcome = await translateMessage(welcome, client.language);
+    const translatedWelcome = await translateMessage(welcome, lang);
     await ctx.reply(translatedWelcome, { parse_mode: "HTML" });
 
     const summarized = await summarizeTripForClient(trip);
     const summaryParts = tripMessageService.formatFullSummary(summarized);
-    const translatedParts = await translateParts(summaryParts, client.language);
+    const translatedParts = await translateParts(summaryParts, lang);
     for (const part of translatedParts) {
       await ctx.reply(part, { parse_mode: "HTML" });
     }

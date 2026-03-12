@@ -4,6 +4,7 @@ import {
   clientRepository,
   tripRepository,
   messageRepository,
+  subscriberRepository,
 } from "@/lib/db/repositories";
 import { generateResponse } from "@/lib/services/ai.service";
 import { transcribeVoice } from "@/lib/services/voice.service";
@@ -29,24 +30,34 @@ export async function handleVoice(ctx: Context): Promise<void> {
   }
 
   try {
-    // Find client
     const isGroup =
       ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+
+    // Resolve trip: client-based or subscriber-based
+    let trip;
+    let language = "en";
+
     const client = isGroup
       ? await clientRepository.findByTelegramGroupId(chatId)
       : await clientRepository.findByTelegramChatId(chatId);
 
-    if (!client) {
+    if (client) {
+      trip = await tripRepository.findByClientId(client.id);
+      language = client.language ?? "en";
+    }
+
+    if (!trip) {
+      const subscriber = await subscriberRepository.findByChatId(chatId);
+      if (subscriber) {
+        trip = await tripRepository.findById(subscriber.tripId);
+        language = subscriber.language ?? "en";
+      }
+    }
+
+    if (!trip) {
       await ctx.reply(
         "🔗 I don't recognize you yet. Please use the link from your travel agency to connect.",
       );
-      return;
-    }
-
-    // Find active trip
-    const trip = await tripRepository.findByClientId(client.id);
-    if (!trip) {
-      await ctx.reply("📭 No active trip found.");
       return;
     }
 
@@ -60,10 +71,7 @@ export async function handleVoice(ctx: Context): Promise<void> {
     const audioBuffer = Buffer.from(await response.arrayBuffer());
 
     // Transcribe with Whisper
-    const transcribedText = await transcribeVoice(
-      audioBuffer,
-      client.language ?? undefined,
-    );
+    const transcribedText = await transcribeVoice(audioBuffer, language);
 
     if (!transcribedText.trim()) {
       await ctx.reply("🎤 I couldn't understand the voice message. Try again?");

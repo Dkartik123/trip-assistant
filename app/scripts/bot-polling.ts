@@ -21,6 +21,12 @@ import {
   handleGuideCommand,
   handleDocsCommand,
 } from "@/lib/bot/handlers/commands";
+import {
+  handleSupportCommand,
+  handleAiCommand,
+  handleSupportMessage,
+  isInSupportMode,
+} from "@/lib/bot/handlers/support";
 import { rateLimiter } from "@/lib/bot/middleware/rate-limiter";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -44,6 +50,8 @@ bot.command("flight", handleFlightCommand);
 bot.command("hotel", handleHotelCommand);
 bot.command("guide", handleGuideCommand);
 bot.command("docs", handleDocsCommand);
+bot.command("support", handleSupportCommand);
+bot.command("ai", handleAiCommand);
 bot.command("help", async (ctx) => {
   const keyboard = new InlineKeyboard()
     .text("📋 Trip", "cmd_trip")
@@ -52,7 +60,8 @@ bot.command("help", async (ctx) => {
     .text("🏨 Hotel", "cmd_hotel")
     .text("🧑‍💼 Guide", "cmd_guide")
     .row()
-    .text("📄 Docs", "cmd_docs");
+    .text("📄 Docs", "cmd_docs")
+    .text("👤 Support", "cmd_support");
 
   await ctx.reply(
     "🤖 I'm your Travel Assistant!\n\n" +
@@ -63,6 +72,8 @@ bot.command("help", async (ctx) => {
       "/hotel — hotel info\n" +
       "/guide — guide contact\n" +
       "/docs — trip documents\n" +
+      "/support — talk to operator\n" +
+      "/ai — return to AI assistant\n" +
       "/help — this message\n\n" +
       "Or use the buttons below:",
     { reply_markup: keyboard },
@@ -90,12 +101,27 @@ bot.callbackQuery("cmd_docs", async (ctx) => {
   await ctx.answerCallbackQuery();
   await handleDocsCommand(ctx);
 });
+bot.callbackQuery("cmd_support", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await handleSupportCommand(ctx);
+});
 
 // ─── Voice messages ─────────────────────
 bot.on("message:voice", handleVoice);
 
 // ─── Text messages (catch-all) ──────────
-bot.on("message:text", handleMessage);
+// If user is in support mode, save message for operator instead of AI reply
+bot.on("message:text", async (ctx) => {
+  const chatId = ctx.chat?.id?.toString();
+  if (chatId && isInSupportMode(chatId)) {
+    const text = ctx.message?.text ?? "";
+    if (!text.startsWith("/")) {
+      await handleSupportMessage(ctx);
+    }
+    return;
+  }
+  await handleMessage(ctx);
+});
 
 // ─── Error handler ──────────────────────
 bot.catch((err) => {
@@ -107,6 +133,19 @@ bot.catch((err) => {
 async function main() {
   console.log("🔄 Deleting webhook (if any) to enable polling…");
   await bot.api.deleteWebhook({ drop_pending_updates: true });
+
+  // ─── Set Telegram command menu ────────
+  await bot.api.setMyCommands([
+    { command: "trip", description: "📋 Trip summary" },
+    { command: "flight", description: "✈️ Flight details" },
+    { command: "hotel", description: "🏨 Hotel info" },
+    { command: "guide", description: "🧑‍💼 Guide contact" },
+    { command: "docs", description: "📄 Trip documents" },
+    { command: "support", description: "👤 Talk to operator" },
+    { command: "ai", description: "🤖 Return to AI assistant" },
+    { command: "help", description: "❓ Show all commands" },
+  ]);
+  console.log("📋 Telegram command menu set");
 
   console.log("✅ Bot is running in polling mode. Press Ctrl+C to stop.");
   await bot.start({

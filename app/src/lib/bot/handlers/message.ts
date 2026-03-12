@@ -4,10 +4,35 @@ import {
   clientRepository,
   tripRepository,
   messageRepository,
+  subscriberRepository,
 } from "@/lib/db/repositories";
 import { generateResponse } from "@/lib/services/ai.service";
 
 const log = createLogger("bot:message");
+
+/**
+ * Resolve the trip for the current chat (client-based or subscriber-based).
+ */
+async function resolveTripForChat(chatId: string, isGroup: boolean) {
+  // 1) Legacy client-based lookup
+  const client = isGroup
+    ? await clientRepository.findByTelegramGroupId(chatId)
+    : await clientRepository.findByTelegramChatId(chatId);
+
+  if (client) {
+    const trip = await tripRepository.findByClientId(client.id);
+    if (trip) return { trip, language: client.language ?? "en" };
+  }
+
+  // 2) Subscriber-based lookup
+  const subscriber = await subscriberRepository.findByChatId(chatId);
+  if (subscriber) {
+    const trip = await tripRepository.findById(subscriber.tripId);
+    if (trip) return { trip, language: subscriber.language ?? "en" };
+  }
+
+  return null;
+}
 
 /**
  * Handle incoming text messages.
@@ -35,24 +60,16 @@ export async function handleMessage(ctx: Context): Promise<void> {
       if (!isMentioned && !isReply) return;
     }
 
-    // Find client by chat ID
-    const client = isGroup
-      ? await clientRepository.findByTelegramGroupId(chatId)
-      : await clientRepository.findByTelegramChatId(chatId);
-
-    if (!client) {
+    // Find trip (client-based or subscriber-based)
+    const result = await resolveTripForChat(chatId, isGroup);
+    if (!result) {
       await ctx.reply(
         "🔗 I don't recognize you yet. Please use the link from your travel agency to connect.",
       );
       return;
     }
 
-    // Find active trip
-    const trip = await tripRepository.findByClientId(client.id);
-    if (!trip) {
-      await ctx.reply("📭 No active trip found. Contact your travel agency.");
-      return;
-    }
+    const { trip } = result;
 
     // Show typing indicator
     await ctx.replyWithChatAction("typing");

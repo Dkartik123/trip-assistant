@@ -36,6 +36,20 @@
       "when": 1773256335665,
       "tag": "0004_stormy_naoko",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773303649378,
+      "tag": "0005_famous_riptide",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773304740884,
+      "tag": "0006_tiny_sebastian_shaw",
+      "breakpoints": true
     }
   ]
 }

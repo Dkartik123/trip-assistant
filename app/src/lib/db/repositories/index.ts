@@ -14,3 +14,8 @@ export {
   type Notification,
   type NewNotification,
 } from "./notification.repository";
+export {
+  subscriberRepository,
+  type TripSubscriber,
+  type NewTripSubscriber,
+} from "./subscriber.repository";

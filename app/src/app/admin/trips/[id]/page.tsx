@@ -3,6 +3,7 @@ import {
   tripRepository,
   messageRepository,
   clientRepository,
+  subscriberRepository,
 } from "@/lib/db/repositories";
 import { notFound } from "next/navigation";
 import type {
@@ -26,8 +27,11 @@ export default async function TripDetailPage({
     notFound();
   }
 
-  const client = await clientRepository.findById(trip.clientId);
-  const rawMessages = await messageRepository.findByTripId(id, 50);
+  const [client, rawMessages, subscribers] = await Promise.all([
+    clientRepository.findById(trip.clientId),
+    messageRepository.findByTripId(id, 50),
+    subscriberRepository.findByTripId(id),
+  ]);
 
   const tripData = {
     id: trip.id,
@@ -57,5 +61,20 @@ export default async function TripDetailPage({
       createdAt: m.createdAt.toISOString(),
     }));
 
-  return <TripDetailClient id={id} trip={tripData} messages={messages} />;
+  const subscriberData = subscribers.map((s) => ({
+    id: s.id,
+    name: s.name ?? "Unknown",
+    telegramChatId: s.telegramChatId,
+    language: s.language ?? "en",
+    joinedAt: s.joinedAt.toISOString(),
+  }));
+
+  return (
+    <TripDetailClient
+      id={id}
+      trip={tripData}
+      messages={messages}
+      subscribers={subscriberData}
+    />
+  );
 }

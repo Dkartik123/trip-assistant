@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -40,6 +40,10 @@ import {
   TrainFront,
   Footprints,
   Bus,
+  Users,
+  Send,
+  Headset,
+  Loader2,
 } from "lucide-react";
 import type {
   FlightItem,
@@ -71,9 +75,17 @@ interface TripData {
 
 interface MessageData {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "operator";
   content: string;
   createdAt: string;
+}
+
+interface SubscriberData {
+  id: string;
+  name: string;
+  telegramChatId: string;
+  language: string;
+  joinedAt: string;
 }
 
 const statusMap = {
@@ -103,10 +115,12 @@ export function TripDetailClient({
   id,
   trip,
   messages: tripMessages,
+  subscribers = [],
 }: {
   id: string;
   trip: TripData;
   messages: MessageData[];
+  subscribers?: SubscriberData[];
 }) {
   const [copied, setCopied] = useState(false);
   const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "TripAssistant123Bot";
@@ -155,7 +169,7 @@ export function TripDetailClient({
               <DialogHeader>
                 <DialogTitle>Ссылка для Telegram бота</DialogTitle>
                 <DialogDescription>
-                  Отправьте эту ссылку клиенту для подключения к боту
+                  Отправьте эту ссылку клиенту и попутчикам — каждый сможет подключиться к боту
                 </DialogDescription>
               </DialogHeader>
               <div className="flex gap-2">
@@ -514,62 +528,264 @@ export function TripDetailClient({
           )}
         </div>
 
-        {/* Right column — Message history */}
-        <div className="lg:col-span-1">
-          <Card className="h-full">
-            <CardHeader>
+        {/* Right column — Subscribers + Message history */}
+        <div className="space-y-4 lg:col-span-1">
+          {/* Subscribers */}
+          <Card>
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <MessageSquare className="h-4 w-4" />
-                История сообщений
+                <Users className="h-4 w-4" />
+                Подписчики ({subscribers.length})
               </CardTitle>
-              <CardDescription>{tripMessages.length} сообщений</CardDescription>
+              <CardDescription>
+                Telegram-пользователи, подключённые к поездке
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {tripMessages.length === 0 ? (
-                  <div className="flex flex-col items-center py-8 text-center">
-                    <MessageSquare className="mb-2 h-8 w-8 text-muted-foreground/50" />
-                    <p className="text-sm text-muted-foreground">
-                      Нет сообщений
-                    </p>
-                  </div>
-                ) : (
-                  tripMessages.map((msg) => (
-                    <div key={msg.id} className="flex gap-3">
-                      <div
-                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                          msg.role === "user"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {msg.role === "user" ? (
-                          <User className="h-3.5 w-3.5" />
-                        ) : (
-                          <Bot className="h-3.5 w-3.5" />
-                        )}
+              {subscribers.length === 0 ? (
+                <div className="flex flex-col items-center py-4 text-center">
+                  <Users className="mb-2 h-8 w-8 text-muted-foreground/50" />
+                  <p className="text-sm text-muted-foreground">
+                    Нет подписчиков. Отправьте deep-link клиентам.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {subscribers.map((sub) => (
+                    <div
+                      key={sub.id}
+                      className="flex items-center gap-3 rounded-lg border p-2"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                        <User className="h-4 w-4" />
                       </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium">
-                            {msg.role === "user" ? "Клиент" : "AI"}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatTime(msg.createdAt)}
-                          </span>
-                        </div>
-                        <p className="text-sm leading-relaxed text-muted-foreground">
-                          {msg.content}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {sub.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {sub.language.toUpperCase()} · {new Date(sub.joinedAt).toLocaleDateString("ru-RU")}
                         </p>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Message history + Chat */}
+          <ChatWidget tripId={id} initialMessages={tripMessages} />
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Chat Widget ────────────────────────────────────────
+
+const MESSAGE_STYLES = {
+  user: {
+    bg: "bg-blue-100 text-blue-700",
+    label: "Клиент",
+    Icon: User,
+  },
+  assistant: {
+    bg: "bg-green-100 text-green-700",
+    label: "AI",
+    Icon: Bot,
+  },
+  operator: {
+    bg: "bg-orange-100 text-orange-700",
+    label: "Оператор",
+    Icon: Headset,
+  },
+} as const;
+
+function ChatWidget({
+  tripId,
+  initialMessages,
+}: {
+  tripId: string;
+  initialMessages: MessageData[];
+}) {
+  const [messages, setMessages] = useState<MessageData[]>(initialMessages);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Poll for new messages every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/trips/${tripId}/messages?limit=100`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const fetched: MessageData[] = (json.data ?? [])
+          .sort(
+            (a: MessageData, b: MessageData) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          )
+          .map((m: MessageData) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            createdAt: m.createdAt,
+          }));
+        // Only update if count changed (avoid unnecessary re-renders)
+        setMessages((prev) => {
+          if (prev.length !== fetched.length) return fetched;
+          if (prev[prev.length - 1]?.id !== fetched[fetched.length - 1]?.id) return fetched;
+          return prev;
+        });
+      } catch {
+        // Silent fail for polling
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [tripId]);
+
+  async function sendMessage() {
+    const text = draft.trim();
+    if (!text || sending) return;
+
+    setSending(true);
+    try {
+      const res = await fetch(`/api/trips/${tripId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: text }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const newMsg: MessageData = {
+          id: json.data.id,
+          role: "operator",
+          content: text,
+          createdAt: json.data.createdAt,
+        };
+        setMessages((prev) => [...prev, newMsg]);
+        setDraft("");
+        // Reset textarea height
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+        }
+      }
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function handleInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setDraft(e.target.value);
+    // Auto-grow textarea
+    const el = e.target;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }
+
+  return (
+    <Card className="flex h-[600px] flex-col">
+      <CardHeader className="shrink-0 pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <MessageSquare className="h-4 w-4" />
+          Чат с клиентом
+        </CardTitle>
+        <CardDescription>{messages.length} сообщений</CardDescription>
+      </CardHeader>
+
+      {/* Scrollable message list */}
+      <CardContent className="flex-1 overflow-hidden px-4 pb-0">
+        <div
+          ref={scrollRef}
+          className="flex h-full flex-col gap-3 overflow-y-auto pr-1"
+        >
+          {messages.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center text-center">
+              <MessageSquare className="mb-2 h-8 w-8 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">Нет сообщений</p>
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const style = MESSAGE_STYLES[msg.role] ?? MESSAGE_STYLES.assistant;
+              const { Icon } = style;
+              return (
+                <div key={msg.id} className="flex gap-3">
+                  <div
+                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${style.bg}`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium">{style.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTime(msg.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                      {msg.content}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </CardContent>
+
+      {/* Input area */}
+      <div className="shrink-0 border-t p-4">
+        <div className="flex items-end gap-2">
+          <textarea
+            ref={textareaRef}
+            value={draft}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            placeholder="Сообщение клиенту..."
+            rows={1}
+            className="flex-1 resize-none rounded-lg border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            style={{ maxHeight: 120 }}
+          />
+          <Button
+            size="icon"
+            onClick={sendMessage}
+            disabled={!draft.trim() || sending}
+            className="shrink-0"
+          >
+            {sending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Enter — отправить · Shift+Enter — новая строка
+        </p>
+      </div>
+    </Card>
   );
 }

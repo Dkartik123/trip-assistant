@@ -4,6 +4,7 @@ import {
   tripRepository,
   clientRepository,
   notificationRepository,
+  subscriberRepository,
   type Trip,
   type NewTrip,
 } from "@/lib/db/repositories";
@@ -66,16 +67,11 @@ export const tripService = {
   },
 
   /**
-   * Send only the changed sections to the client's Telegram chat.
-   * Skipped silently if the client has no linked chat or nothing changed.
+   * Send only the changed sections to ALL trip subscribers' Telegram chats.
+   * Each subscriber gets the message translated to their language.
+   * Also sends to the primary client's chat for backward compatibility.
    */
   async notifyTelegramClient(oldTrip: Trip, newTrip: Trip): Promise<void> {
-    const client = await clientRepository.findById(newTrip.clientId);
-    if (!client) return;
-
-    const chatId = client.telegramChatId || client.telegramGroupId;
-    if (!chatId) return;
-
     // Build diff message — only changed sections
     const parts = tripMessageService.formatChangedSections(oldTrip, newTrip);
     if (!parts) {
@@ -83,18 +79,52 @@ export const tripService = {
       return;
     }
 
-    // Translate to client's language
-    const translated = await translateParts(parts, client.language);
-
     // Dynamically import bot to avoid circular dependency
     const { getBot } = await import("@/lib/bot");
     const bot = getBot();
 
-    for (const part of translated) {
-      await bot.api.sendMessage(chatId, part, { parse_mode: "HTML" });
+    // Collect all chat IDs to notify (subscribers + legacy client chat)
+    const subscribers = await subscriberRepository.findByTripId(newTrip.id);
+    const notifiedChatIds = new Set<string>();
+
+    // 1) Notify all subscribers (each in their language)
+    for (const sub of subscribers) {
+      if (notifiedChatIds.has(sub.telegramChatId)) continue;
+      notifiedChatIds.add(sub.telegramChatId);
+
+      try {
+        const translated = await translateParts(parts, sub.language);
+        for (const part of translated) {
+          await bot.api.sendMessage(sub.telegramChatId, part, { parse_mode: "HTML" });
+        }
+      } catch (err) {
+        log.warn({ err, chatId: sub.telegramChatId }, "Failed to notify subscriber");
+      }
     }
 
-    log.info({ tripId: newTrip.id, chatId }, "Pushed trip changes to Telegram");
+    // 2) Fallback: notify primary client if not already reached via subscribers
+    const client = await clientRepository.findById(newTrip.clientId);
+    if (client) {
+      const chatId = client.telegramChatId || client.telegramGroupId;
+      if (chatId && !notifiedChatIds.has(chatId)) {
+        try {
+          const translated = await translateParts(parts, client.language);
+          for (const part of translated) {
+            await bot.api.sendMessage(chatId, part, { parse_mode: "HTML" });
+          }
+          notifiedChatIds.add(chatId);
+        } catch (err) {
+          log.warn({ err, chatId }, "Failed to notify primary client");
+        }
+      }
+    }
+
+    if (notifiedChatIds.size > 0) {
+      log.info(
+        { tripId: newTrip.id, recipientCount: notifiedChatIds.size },
+        "Pushed trip changes to Telegram subscribers",
+      );
+    }
   },
 
   async activateTrip(id: string): Promise<Trip> {

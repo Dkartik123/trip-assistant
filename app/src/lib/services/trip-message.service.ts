@@ -117,11 +117,20 @@ function formatFlightItem(f: FlightItem, idx: number): string {
   const isTrain = f.type === "train";
 
   if (isTrain) {
-    const num = f.trainNumber ? esc(f.trainNumber) : `Train ${idx + 1}`;
-    lines.push(`🚆 ${b(num)}`);
+    const num = f.trainNumber || `${idx + 1}`;
+    lines.push(`🚆 ${b(`Train #${esc(num)}`)}`);
 
-    const dep = [f.departureCity, f.departureStation ? `(${f.departureStation})` : ""].filter(Boolean).join(" ");
-    const arr = [f.arrivalCity, f.arrivalStation ? `(${f.arrivalStation})` : ""].filter(Boolean).join(" ");
+    // Build route: don't repeat station if same as city
+    const depParts = [f.departureCity];
+    if (f.departureStation && f.departureStation.toLowerCase() !== f.departureCity?.toLowerCase()) {
+      depParts.push(`(${f.departureStation})`);
+    }
+    const arrParts = [f.arrivalCity];
+    if (f.arrivalStation && f.arrivalStation.toLowerCase() !== f.arrivalCity?.toLowerCase()) {
+      arrParts.push(`(${f.arrivalStation})`);
+    }
+    const dep = depParts.filter(Boolean).join(" ");
+    const arr = arrParts.filter(Boolean).join(" ");
     if (dep || arr) lines.push(`🚉 ${esc(dep || "?")} → ${esc(arr || "?")}`);
 
     if (f.flightDate) lines.push(kv("📅", "Departure", fmtDateTimeFull(f.flightDate)));
@@ -129,8 +138,8 @@ function formatFlightItem(f: FlightItem, idx: number): string {
     lines.push(kv("💺", "Seat", f.seat));
     lines.push(kv("🎫", "Class", f.carriageClass));
   } else {
-    const num = f.flightNumber ? esc(f.flightNumber) : `Flight ${idx + 1}`;
-    lines.push(`✈️ ${b(num)}`);
+    const num = f.flightNumber || `${idx + 1}`;
+    lines.push(`✈️ ${b(`Flight ${esc(num)}`)}`);
 
     const dep = [f.departureCity, f.departureAirport ? `(${f.departureAirport})` : ""].filter(Boolean).join(" ");
     const arr = [f.arrivalCity, f.arrivalAirport ? `(${f.arrivalAirport})` : ""].filter(Boolean).join(" ");
@@ -297,11 +306,20 @@ export const tripMessageService = {
     // Header
     sections.push(`🌍 ${b("YOUR TRIP")}\n${DIVIDER}`);
 
-    // Flights
+    // Flights & Trains
     const flights = asFlights(trip.flights);
     if (flights.length > 0) {
-      const flightLines = [`\n✈️ ${b("FLIGHTS")}\n${SUB_DIVIDER}`];
-      flights.forEach((f, i) => flightLines.push(formatFlightItem(f, i)));
+      const hasTrains = flights.some(f => f.type === "train");
+      const hasPlanes = flights.some(f => f.type !== "train");
+      let flightHeader = "✈️";
+      let flightTitle = "FLIGHTS";
+      if (hasTrains && hasPlanes) { flightHeader = "✈️🚆"; flightTitle = "FLIGHTS & TRAINS"; }
+      else if (hasTrains) { flightHeader = "🚆"; flightTitle = "TRAINS"; }
+      const flightLines = [`\n${flightHeader} ${b(flightTitle)}\n${SUB_DIVIDER}`];
+      flights.forEach((f, idx) => {
+        if (idx > 0) flightLines.push("");
+        flightLines.push(formatFlightItem(f, idx));
+      });
       sections.push(flightLines.join("\n"));
     }
 
@@ -309,7 +327,10 @@ export const tripMessageService = {
     const hotels = asHotels(trip.hotels);
     if (hotels.length > 0) {
       const hotelLines = [`\n🏨 ${b("HOTELS")}\n${SUB_DIVIDER}`];
-      hotels.forEach((h, i) => hotelLines.push(formatHotelItem(h, i)));
+      hotels.forEach((h, idx) => {
+        if (idx > 0) hotelLines.push("");
+        hotelLines.push(formatHotelItem(h, idx));
+      });
       sections.push(hotelLines.join("\n"));
     }
 
@@ -317,7 +338,10 @@ export const tripMessageService = {
     const guides = asGuides(trip.guides);
     if (guides.length > 0) {
       const guideLines = [`\n🧑‍💼 ${b("GUIDES")}\n${SUB_DIVIDER}`];
-      guides.forEach((g, i) => guideLines.push(formatGuideItem(g, i)));
+      guides.forEach((g, idx) => {
+        if (idx > 0) guideLines.push("");
+        guideLines.push(formatGuideItem(g, idx));
+      });
       sections.push(guideLines.join("\n"));
     }
 
@@ -325,7 +349,10 @@ export const tripMessageService = {
     const transfers = asTransfers(trip.transfers);
     if (transfers.length > 0) {
       const transferLines = [`\n🚐 ${b("TRANSPORT")}\n${SUB_DIVIDER}`];
-      transfers.forEach((t, i) => transferLines.push(formatTransferItem(t, i)));
+      transfers.forEach((t, idx) => {
+        if (idx > 0) transferLines.push("");
+        transferLines.push(formatTransferItem(t, idx));
+      });
       sections.push(transferLines.join("\n"));
     }
 
@@ -333,7 +360,10 @@ export const tripMessageService = {
     const insurances = asInsurances(trip.insurances);
     if (insurances.length > 0) {
       const insLines = [`\n🛡️ ${b("INSURANCE")}\n${SUB_DIVIDER}`];
-      insurances.forEach((ins, i) => insLines.push(formatInsuranceItem(ins, i)));
+      insurances.forEach((ins, idx) => {
+        if (idx > 0) insLines.push("");
+        insLines.push(formatInsuranceItem(ins, idx));
+      });
       sections.push(insLines.join("\n"));
     }
 
@@ -341,7 +371,10 @@ export const tripMessageService = {
     const attractions = asAttractions(trip.attractions);
     if (attractions.length > 0) {
       const attrLines = [`\n🎯 ${b("ACTIVITIES & ATTRACTIONS")}\n${SUB_DIVIDER}`];
-      attractions.forEach((a, i) => attrLines.push(formatAttractionItem(a, i)));
+      attractions.forEach((a, idx) => {
+        if (idx > 0) attrLines.push("");
+        attrLines.push(formatAttractionItem(a, idx));
+      });
       sections.push(attrLines.join("\n"));
     }
 
@@ -366,8 +399,17 @@ export const tripMessageService = {
   formatFlights(trip: Trip): string {
     const flights = asFlights(trip.flights);
     if (flights.length === 0) return "✈️ No flight details available yet.";
-    const lines = [`✈️ ${b("FLIGHTS")}\n${SUB_DIVIDER}`];
-    flights.forEach((f, i) => lines.push(formatFlightItem(f, i)));
+    const hasTrains = flights.some(f => f.type === "train");
+    const hasPlanes = flights.some(f => f.type !== "train");
+    let hdr = "✈️";
+    let title = "FLIGHTS";
+    if (hasTrains && hasPlanes) { hdr = "✈️🚆"; title = "FLIGHTS & TRAINS"; }
+    else if (hasTrains) { hdr = "🚆"; title = "TRAINS"; }
+    const lines = [`${hdr} ${b(title)}\n${SUB_DIVIDER}`];
+    flights.forEach((f, idx) => {
+      if (idx > 0) lines.push("");
+      lines.push(formatFlightItem(f, idx));
+    });
     return join(lines);
   },
 
@@ -376,7 +418,10 @@ export const tripMessageService = {
     const hotels = asHotels(trip.hotels);
     if (hotels.length === 0) return "🏨 No hotel details available yet.";
     const lines = [`🏨 ${b("HOTELS")}\n${SUB_DIVIDER}`];
-    hotels.forEach((h, i) => lines.push(formatHotelItem(h, i)));
+    hotels.forEach((h, idx) => {
+      if (idx > 0) lines.push("");
+      lines.push(formatHotelItem(h, idx));
+    });
     return join(lines);
   },
 
@@ -385,7 +430,10 @@ export const tripMessageService = {
     const guides = asGuides(trip.guides);
     if (guides.length === 0) return "🧑‍💼 No guide assigned yet.";
     const lines = [`🧑‍💼 ${b("GUIDES")}\n${SUB_DIVIDER}`];
-    guides.forEach((g, i) => lines.push(formatGuideItem(g, i)));
+    guides.forEach((g, idx) => {
+      if (idx > 0) lines.push("");
+      lines.push(formatGuideItem(g, idx));
+    });
     return join(lines);
   },
 
@@ -394,7 +442,10 @@ export const tripMessageService = {
     const transfers = asTransfers(trip.transfers);
     if (transfers.length === 0) return "🚐 No transport details available yet.";
     const lines = [`🚐 ${b("TRANSPORT")}\n${SUB_DIVIDER}`];
-    transfers.forEach((t, i) => lines.push(formatTransferItem(t, i)));
+    transfers.forEach((t, idx) => {
+      if (idx > 0) lines.push("");
+      lines.push(formatTransferItem(t, idx));
+    });
     return join(lines);
   },
 
@@ -403,7 +454,10 @@ export const tripMessageService = {
     const insurances = asInsurances(trip.insurances);
     if (insurances.length === 0) return "🛡️ No insurance details available yet.";
     const lines = [`🛡️ ${b("INSURANCE")}\n${SUB_DIVIDER}`];
-    insurances.forEach((ins, i) => lines.push(formatInsuranceItem(ins, i)));
+    insurances.forEach((ins, idx) => {
+      if (idx > 0) lines.push("");
+      lines.push(formatInsuranceItem(ins, idx));
+    });
     return join(lines);
   },
 
@@ -412,7 +466,10 @@ export const tripMessageService = {
     const attractions = asAttractions(trip.attractions);
     if (attractions.length === 0) return "🎯 No activities planned yet.";
     const lines = [`🎯 ${b("ACTIVITIES & ATTRACTIONS")}\n${SUB_DIVIDER}`];
-    attractions.forEach((a, i) => lines.push(formatAttractionItem(a, i)));
+    attractions.forEach((a, idx) => {
+      if (idx > 0) lines.push("");
+      lines.push(formatAttractionItem(a, idx));
+    });
     return join(lines);
   },
 
@@ -421,8 +478,9 @@ export const tripMessageService = {
     const lines = [`📄 ${b("DOCUMENTS & NOTES")}\n${SUB_DIVIDER}`];
 
     const insurances = asInsurances(trip.insurances);
-    insurances.forEach((ins, i) => {
-      lines.push(formatInsuranceItem(ins, i));
+    insurances.forEach((ins, idx) => {
+      if (idx > 0) lines.push("");
+      lines.push(formatInsuranceItem(ins, idx));
     });
 
     if (trip.managerPhone) lines.push(kv("📞", "Manager", trip.managerPhone));
@@ -456,11 +514,19 @@ export const tripMessageService = {
     const changed = (oldVal: unknown, newVal: unknown): boolean =>
       JSON.stringify(oldVal ?? []) !== JSON.stringify(newVal ?? []);
 
-    // Flights
+    // Flights & Trains
     const flights = asFlights(newTrip.flights);
     if (changed(oldTrip.flights, newTrip.flights) && flights.length > 0) {
-      const lines = [`\n✈️ ${b("FLIGHTS")}`];
-      flights.forEach((f, idx) => lines.push(formatFlightItem(f, idx)));
+      const hasTrains = flights.some(f => f.type === "train");
+      const hasPlanes = flights.some(f => f.type !== "train");
+      let hdr = "✈️"; let title = "FLIGHTS";
+      if (hasTrains && hasPlanes) { hdr = "✈️🚆"; title = "FLIGHTS & TRAINS"; }
+      else if (hasTrains) { hdr = "🚆"; title = "TRAINS"; }
+      const lines = [`\n${hdr} ${b(title)}`];
+      flights.forEach((f, idx) => {
+        if (idx > 0) lines.push("");
+        lines.push(formatFlightItem(f, idx));
+      });
       sections.push(lines.join("\n"));
     }
 
@@ -468,7 +534,10 @@ export const tripMessageService = {
     const hotels = asHotels(newTrip.hotels);
     if (changed(oldTrip.hotels, newTrip.hotels) && hotels.length > 0) {
       const lines = [`\n🏨 ${b("HOTELS")}`];
-      hotels.forEach((h, idx) => lines.push(formatHotelItem(h, idx)));
+      hotels.forEach((h, idx) => {
+        if (idx > 0) lines.push("");
+        lines.push(formatHotelItem(h, idx));
+      });
       sections.push(lines.join("\n"));
     }
 
@@ -476,7 +545,10 @@ export const tripMessageService = {
     const guides = asGuides(newTrip.guides);
     if (changed(oldTrip.guides, newTrip.guides) && guides.length > 0) {
       const lines = [`\n🧑‍💼 ${b("GUIDES")}`];
-      guides.forEach((g, idx) => lines.push(formatGuideItem(g, idx)));
+      guides.forEach((g, idx) => {
+        if (idx > 0) lines.push("");
+        lines.push(formatGuideItem(g, idx));
+      });
       sections.push(lines.join("\n"));
     }
 
@@ -484,7 +556,10 @@ export const tripMessageService = {
     const transfers = asTransfers(newTrip.transfers);
     if (changed(oldTrip.transfers, newTrip.transfers) && transfers.length > 0) {
       const lines = [`\n🚐 ${b("TRANSPORT")}`];
-      transfers.forEach((t, idx) => lines.push(formatTransferItem(t, idx)));
+      transfers.forEach((t, idx) => {
+        if (idx > 0) lines.push("");
+        lines.push(formatTransferItem(t, idx));
+      });
       sections.push(lines.join("\n"));
     }
 
@@ -492,7 +567,10 @@ export const tripMessageService = {
     const insurances = asInsurances(newTrip.insurances);
     if (changed(oldTrip.insurances, newTrip.insurances) && insurances.length > 0) {
       const lines = [`\n🛡️ ${b("INSURANCE")}`];
-      insurances.forEach((ins, idx) => lines.push(formatInsuranceItem(ins, idx)));
+      insurances.forEach((ins, idx) => {
+        if (idx > 0) lines.push("");
+        lines.push(formatInsuranceItem(ins, idx));
+      });
       sections.push(lines.join("\n"));
     }
 
@@ -500,7 +578,10 @@ export const tripMessageService = {
     const attractions = asAttractions(newTrip.attractions);
     if (changed(oldTrip.attractions, newTrip.attractions) && attractions.length > 0) {
       const lines = [`\n🎯 ${b("ACTIVITIES & ATTRACTIONS")}`];
-      attractions.forEach((a, idx) => lines.push(formatAttractionItem(a, idx)));
+      attractions.forEach((a, idx) => {
+        if (idx > 0) lines.push("");
+        lines.push(formatAttractionItem(a, idx));
+      });
       sections.push(lines.join("\n"));
     }
 
@@ -575,22 +656,24 @@ function splitMessages(text: string): string[] {
 
 // ─── AI summarization ────────────────────────────────────
 
-const SUMMARIZE_PROMPT = `You are a helpful travel assistant. Summarize the following text into a SHORT, clear, client‑friendly message in the SAME LANGUAGE as the original. 
+const SUMMARIZE_PROMPT = `You are a helpful travel assistant. Summarize the following text into a SHORT, clear, client-friendly message.
 Keep ONLY what matters to the traveler: key rules, important dates/times, action items, warnings.
 Remove marketing fluff, legal boilerplate, and repetition.
 Use bullet points (•) for clarity. Max 4-6 bullet points.
 Do NOT add any greeting or sign-off. Return ONLY the summary text.`;
 
 const TRANSLATE_PROMPT = `You are a translator for a travel assistant Telegram bot.
-Translate the following HTML message to {LANG}.
+Translate the following HTML message COMPLETELY to {LANG}.
 
 Rules:
+- Translate ALL text to {LANG}, including hotel messages, cancellation policies, transfer notes, insurance descriptions, special requests, and any other content — regardless of what language it was originally written in (Italian, French, Estonian, German, English, etc.).
+- The message may contain text in MULTIPLE languages mixed together. Translate EVERY piece of text to {LANG}.
 - Preserve ALL HTML tags exactly (<b>, </b>, <i>, </i>).
 - Preserve ALL emojis exactly.
-- Do NOT translate proper names (person names, hotel names, airline names, city names, airport codes, station names).
-- Do NOT translate numbers, dates, times, phone numbers, confirmation codes, PINs.
-- Do NOT translate currency amounts — keep the original format (e.g. "148.91 EUR").
-- Translate section headers, labels, descriptions, instructions, and notes.
+- Do NOT translate proper names (person names, hotel names, airline names, company names).
+- Do NOT translate city names, airport codes (IATA), train station names.
+- Do NOT change numbers, dates, times, phone numbers, confirmation codes, PINs, currency amounts.
+- Translate section headers, labels, descriptions, instructions, notes, and ALL informational content.
 - Keep the same formatting and line breaks.
 - Return ONLY the translated message, nothing else.`;
 
