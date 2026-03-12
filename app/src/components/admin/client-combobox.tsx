@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 interface ClientOption {
   id: string;
   name: string;
+  language: string;
 }
 
 interface ClientComboboxProps {
@@ -96,7 +97,7 @@ export function ClientCombobox({
       }
 
       const { data: created } = await res.json();
-      const newClient: ClientOption = { id: created.id, name: created.name };
+      const newClient: ClientOption = { id: created.id, name: created.name, language: created.language ?? "en" };
 
       onClientCreated(newClient);
       onValueChange(created.id);

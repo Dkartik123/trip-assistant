@@ -25,6 +25,7 @@ import { hasValues } from "@/lib/utils/form-helpers";
 export interface ClientOption {
   id: string;
   name: string;
+  language: string;
 }
 
 export interface TripFormInitialData {
@@ -192,6 +193,23 @@ export function useTripForm(opts: {
     init(c.managerPhone, initialData?.managerPhone, ""),
   );
 
+  // Client language — resolved from selected client
+  const selectedClient = clientList.find((cl) => cl.id === clientId);
+  const [clientLanguage, setClientLanguage] = useState(
+    selectedClient?.language ?? "en",
+  );
+  // Track original language to know if it was changed
+  const originalLanguageRef = useRef(clientLanguage);
+
+  // Sync language when client selection changes
+  useEffect(() => {
+    const cl = clientList.find((c) => c.id === clientId);
+    if (cl) {
+      setClientLanguage(cl.language);
+      originalLanguageRef.current = cl.language;
+    }
+  }, [clientId, clientList]);
+
   // Section arrays
   const [flights, setFlights] = useState<FlightItem[]>(
     init(c.flights, initialData?.flights, []),
@@ -329,6 +347,16 @@ export function useTripForm(opts: {
       }
 
       const { data: savedTrip } = await res.json();
+
+      // Update client language if changed
+      if (clientId && clientLanguage !== originalLanguageRef.current) {
+        await fetch(`/api/clients/${clientId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ language: clientLanguage }),
+        }).catch(() => {/* non-critical */});
+      }
+
       clearCache();
       toast.success(isEdit ? "Поездка обновлена" : "Поездка создана");
       router.push(`/admin/trips/${savedTrip.id}`);
@@ -352,6 +380,8 @@ export function useTripForm(opts: {
     setStatus,
     managerPhone,
     setManagerPhone,
+    clientLanguage,
+    setClientLanguage,
     flights,
     setFlights,
     hotels,

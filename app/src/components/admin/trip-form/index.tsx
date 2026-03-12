@@ -47,6 +47,7 @@ import { TransferSection } from "./transfer-section";
 import { InsuranceSection } from "./insurance-section";
 import { AttractionSection } from "./attraction-section";
 import { NotesSection } from "./notes-section";
+import { LANGUAGES } from "@/lib/constants/locale";
 
 // ─── Public interface ────────────────────────────────────
 
@@ -162,6 +163,24 @@ export function TripForm({
                 <SelectItem value="draft">Черновик</SelectItem>
                 <SelectItem value="active">Активна</SelectItem>
                 <SelectItem value="completed">Завершена</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="clientLanguage">Язык общения</Label>
+            <Select
+              value={form.clientLanguage}
+              onValueChange={(v) => v && form.setClientLanguage(v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите язык" />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.value} value={l.value}>
+                    {l.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
