@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import {
   Card,
@@ -64,6 +65,13 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? "Вход..." : "Войти"}
             </Button>
+
+            <p className="text-center text-sm text-muted-foreground">
+              Нет аккаунта?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Зарегистрироваться
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

@@ -90,6 +90,7 @@ export const managers = pgTable("managers", {
     .references(() => agencies.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  phone: varchar("phone", { length: 50 }),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

@@ -50,6 +50,13 @@
       "when": 1773304740884,
       "tag": "0006_tiny_sebastian_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773312934900,
+      "tag": "0007_fat_paladin",
+      "breakpoints": true
     }
   ]
 }

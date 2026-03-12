@@ -50,8 +50,8 @@ export const authConfig = {
         return true;
       }
 
-      // ── Login page → redirect to admin if already authenticated
-      if (pathname === "/login") {
+      // ── Login / Register → redirect to admin if already authenticated
+      if (pathname === "/login" || pathname === "/register") {
         if (isLoggedIn) {
           return Response.redirect(new URL("/admin", nextUrl));
         }
