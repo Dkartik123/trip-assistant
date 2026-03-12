@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Settings, LogOut, User } from "lucide-react";
+import { signOut } from "./actions";
 
 export function AdminHeader() {
   return (
@@ -36,7 +37,10 @@ export function AdminHeader() {
             Настройки
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-destructive">
+          <DropdownMenuItem
+            className="text-destructive"
+            onClick={() => signOut()}
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Выйти
           </DropdownMenuItem>

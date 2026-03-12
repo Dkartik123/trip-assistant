@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, User, Bot, Plane } from "lucide-react";
+import { MessageSquare, User, Bot, Headset, Plane, ArrowRight } from "lucide-react";
 import { getCurrentManager } from "@/lib/admin-session";
 import { messageRepository } from "@/lib/db/repositories";
 
@@ -15,7 +16,7 @@ function formatTime(dateStr: Date) {
 
 interface MessageWithTrip {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "operator";
   content: string;
   createdAt: Date;
   trip: {
@@ -71,7 +72,7 @@ export default async function MessagesPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Сообщения</h1>
         <p className="text-muted-foreground">
-          Переписки клиентов с AI-ассистентом
+          Переписки клиентов с AI-ассистентом и оператором
         </p>
       </div>
 
@@ -95,24 +96,37 @@ export default async function MessagesPage() {
                       {conv.route}
                     </Badge>
                   </CardTitle>
-                  <Badge variant="secondary">
-                    {conv.messages.length} сообщений
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">
+                      {conv.messages.length} сообщений
+                    </Badge>
+                    <Link
+                      href={`/admin/trips/${conv.tripId}`}
+                      className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      Открыть чат
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {conv.messages.map((msg) => (
+                  {conv.messages.slice(-10).map((msg) => (
                     <div key={msg.id} className="flex gap-3">
                       <div
                         className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
                           msg.role === "user"
                             ? "bg-blue-100 text-blue-700"
-                            : "bg-green-100 text-green-700"
+                            : msg.role === "operator"
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-green-100 text-green-700"
                         }`}
                       >
                         {msg.role === "user" ? (
                           <User className="h-3 w-3" />
+                        ) : msg.role === "operator" ? (
+                          <Headset className="h-3 w-3" />
                         ) : (
                           <Bot className="h-3 w-3" />
                         )}
@@ -120,7 +134,11 @@ export default async function MessagesPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium">
-                            {msg.role === "user" ? "Клиент" : "AI"}
+                            {msg.role === "user"
+                              ? "Клиент"
+                              : msg.role === "operator"
+                                ? "Оператор"
+                                : "AI"}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {formatTime(msg.createdAt)}
@@ -132,6 +150,14 @@ export default async function MessagesPage() {
                       </div>
                     </div>
                   ))}
+                  {conv.messages.length > 10 && (
+                    <Link
+                      href={`/admin/trips/${conv.tripId}`}
+                      className="block text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      … ещё {conv.messages.length - 10} сообщений →
+                    </Link>
+                  )}
                 </div>
               </CardContent>
             </Card>

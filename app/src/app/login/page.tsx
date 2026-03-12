@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState } from "react";
 import {
   Card,
   CardContent,
@@ -13,27 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plane } from "lucide-react";
+import { authenticate } from "./actions";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      // TODO: Implement NextAuth signIn
-      await new Promise((r) => setTimeout(r, 800));
-      router.push("/admin");
-    } catch {
-      setError("Неверный email или пароль");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [error, formAction, isPending] = useActionState(
+    authenticate,
+    undefined,
+  );
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
@@ -48,7 +33,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={formAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -76,8 +61,8 @@ export default function LoginPage() {
               <p className="text-sm text-destructive">{error}</p>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Вход..." : "Войти"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Вход..." : "Войти"}
             </Button>
           </form>
         </CardContent>

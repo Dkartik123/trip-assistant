@@ -43,7 +43,7 @@
 - [x] `DELETE /api/trips/:id` — удалить поездку
 - [x] `POST /api/trips/:id/invite` — сгенерировать deep-link
 - [x] `GET /api/trips/:id/messages` — история сообщений
-- [ ] Auth middleware (NextAuth / Clerk) на все `/api/trips/*`
+- [x] Auth middleware (NextAuth v5 Credentials + JWT + Edge middleware)
 - [x] `POST /api/clients` — создать клиента
 - [x] `GET /api/clients` — список клиентов
 - [x] Error response стандартизация (единый формат ошибок)
@@ -58,20 +58,25 @@
 - [x] Rate limiter (10 msg/min, in-memory)
 - [x] `/help` — список команд
 - [x] Webhook endpoint `POST /api/webhook/telegram`
-- [ ] Зарегистрировать бота в @BotFather
-- [ ] Установить webhook URL (`bot.api.setWebhook(...)`)
+- [x] Зарегистрировать бота в @BotFather (@TripAssistant123Bot)
+- [ ] Установить webhook URL (`bot.api.setWebhook(...)`) — при деплое
 - [x] `/trip` — полная сводка поездки
 - [x] `/flight` — данные рейса
 - [x] `/hotel` — данные отеля
 - [x] `/guide` — контакт гида
 - [x] `/docs` — отправка файлов через Telegram Files API
-- [x] Inline-кнопки (quick actions: рейс, отель, гид, документы)
-- [ ] Push-уведомление клиенту при изменении поездки менеджером
+- [x] Inline-кнопки (quick actions: рейс, отель, гид, документы, поддержка)
+- [x] Push-уведомление клиенту при изменении поездки менеджером (diff по секциям)
+- [x] `/support` — переключение на живого оператора
+- [x] `/ai` — возврат к AI-ассистенту
+- [x] Меню команд в Telegram (`bot.api.setMyCommands`)
+- [x] Мульти-подписчики на поездку (`trip_subscribers` таблица)
+- [x] Двусторонний чат оператор ↔ клиент (admin UI + Telegram)
 
-### 1.5 AI-сервис (Claude)
+### 1.5 AI-сервис (Google Gemini)
 
-- [x] Claude Haiku 4.5 — основная модель
-- [x] Claude Sonnet 4.6 — fallback для сложных вопросов
+- [x] Gemini 2.0 Flash — основная модель
+- [x] Gemini 2.0 Flash-Lite — fallback
 - [x] System prompt с данными поездки
 - [x] Контекст: последние 10 сообщений из истории
 - [x] Fallback на номер менеджера если AI не может ответить
@@ -96,7 +101,7 @@
 - [x] Шаблоны уведомлений (текст)
 - [x] Cleanup старых сообщений (6 месяцев, cron daily)
 - [ ] Пересчёт времени в timezone клиента
-- [ ] Уведомление при изменении поездки менеджером (diff)
+- [x] Уведомление при изменении поездки менеджером (diff по секциям + перевод)
 - [ ] Тестирование: создать поездку с flight_date через 1 час → проверить уведомление
 
 ### 1.8 WhatsApp
@@ -120,12 +125,13 @@
 - [x] Dashboard: статистика + быстрые действия
 - [x] Страница: клиенты (таблица + добавление)
 - [x] Страница: настройки (бот, AI, WhatsApp, безопасность)
-- [ ] Подключить Admin UI к реальным API (убрать mock данные)
+- [x] Подключить Admin UI к реальным API (убрать mock данные)
+- [x] Чат-виджет оператора (real-time polling, отправка сообщений в Telegram)
 
 ### 1.10 Тесты
 
 - [x] Vitest конфигурация
-- [x] AI service unit test (мок Claude API)
+- [x] AI service unit test (мок Gemini API)
 - [x] Trip service unit test
 - [ ] Notification service unit test
 - [ ] API route integration tests (testcontainers)
@@ -187,4 +193,4 @@
 
 ---
 
-_Последнее обновление: March 11, 2026_
+_Последнее обновление: March 12, 2026_
