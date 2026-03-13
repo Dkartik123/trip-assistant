@@ -82,18 +82,33 @@ export async function handleStart(ctx: Context): Promise<void> {
       isNewSubscriber ? "New subscriber joined trip" : "Existing subscriber reconnected",
     );
 
-    // Send welcome + full trip summary (AI-summarized verbose parts)
+    // Send immediate acknowledgment — must return 200 to Telegram quickly to avoid retries
     const lang = subscriber.language ?? client.language;
     const welcome = tripMessageService.formatWelcome(client.name);
-    const translatedWelcome = await translateMessage(welcome, lang);
-    await ctx.reply(translatedWelcome, { parse_mode: "HTML" });
+    await ctx.reply(welcome, { parse_mode: "HTML" });
+    await ctx.reply("⏳ Preparing your full trip summary...");
 
-    const summarized = await summarizeTripForClient(trip);
-    const summaryParts = tripMessageService.formatFullSummary(summarized);
-    const translatedParts = await translateParts(summaryParts, lang);
-    for (const part of translatedParts) {
-      await ctx.reply(part, { parse_mode: "HTML" });
-    }
+    // Fire AI-heavy work in background so webhook handler returns 200 immediately
+    void (async () => {
+      try {
+        const translatedWelcome = await translateMessage(welcome, lang);
+        // Re-send translated welcome only if language is not English
+        if (lang && lang !== "en") {
+          await ctx.reply(translatedWelcome, { parse_mode: "HTML" });
+        }
+
+        const summarized = await summarizeTripForClient(trip);
+        const summaryParts = tripMessageService.formatFullSummary(summarized);
+        const translatedParts = await translateParts(summaryParts, lang);
+        for (const part of translatedParts) {
+          await ctx.reply(part, { parse_mode: "HTML" });
+        }
+      } catch (error) {
+        log.error({ error, chatId }, "Failed to send AI trip summary");
+        await ctx.reply("⚠️ Could not load full trip details. Please try again later.").catch(() => {});
+      }
+    })();
+    // Handler returns here → grammY sends 200 to Telegram immediately
   } catch (error) {
     log.error({ error, chatId, token }, "Failed to handle /start");
     await ctx.reply("⚠️ Something went wrong. Please try again later.");
