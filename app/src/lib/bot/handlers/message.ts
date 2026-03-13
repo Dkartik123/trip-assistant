@@ -101,7 +101,7 @@ export async function handleMessage(ctx: Context): Promise<void> {
       contentType: "text",
     });
 
-    await ctx.reply(response);
+    await ctx.reply(response, { parse_mode: "HTML" });
 
     // Notify operator about client's message (fire-and-forget)
     const operatorChatId = env.OPERATOR_TELEGRAM_CHAT_ID;

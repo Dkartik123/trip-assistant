@@ -45,6 +45,24 @@ function line(emoji: string, value: string | null | undefined): string {
   return `${emoji} ${esc(value)}`;
 }
 
+/**
+ * Build a Google Maps search link for Telegram HTML parse mode.
+ * Returns an <a> tag that Telegram renders as a clickable link.
+ */
+function mapsLink(address: string | null | undefined, label?: string): string {
+  if (!address?.trim()) return "";
+  const encoded = encodeURIComponent(address.trim());
+  const href = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+  const display = esc(label ?? address);
+  return `<a href="${href}">${display}</a>`;
+}
+
+/** Emit an address line with an embedded Google Maps hyperlink */
+function mapsLine(emoji: string, address: string | null | undefined): string {
+  if (!address?.trim()) return "";
+  return `${emoji} ${mapsLink(address)}`;
+}
+
 /** Join non-empty lines with newlines */
 function join(lines: string[]): string {
   return lines.filter(Boolean).join("\n");
@@ -161,7 +179,7 @@ function formatFlightItem(f: FlightItem, idx: number): string {
 function formatHotelItem(h: HotelItem, idx: number): string {
   const lines: string[] = [];
   lines.push(`🏨 ${b(h.hotelName || `Hotel ${idx + 1}`)}`);
-  lines.push(line("📍", h.hotelAddress));
+  lines.push(mapsLine("📍", h.hotelAddress));
   lines.push(line("📞", h.hotelPhone));
   if (h.guestName) lines.push(kv("🧑", "Guest", h.guestName));
 
@@ -219,7 +237,11 @@ function formatTransferItem(t: TransferItem, idx: number): string {
   // Common fields
   const from = t.fromLocation;
   const to = t.toLocation;
-  if (from || to) lines.push(`📍 ${esc(from || "?")} → ${esc(to || "?")}`);
+  if (from || to) {
+    const fromPart = from ? mapsLink(from) : "?";
+    const toPart = to ? mapsLink(to) : "?";
+    lines.push(`📍 ${fromPart} → ${toPart}`);
+  }
   if (t.date || t.time) lines.push(`📅 ${esc(fmtDateTime(t.date, t.time) || "N/A")}`);
   lines.push(kv("💰", "Price", t.price));
   lines.push(kv("📋", "Confirmation", t.confirmationNumber));
@@ -227,7 +249,7 @@ function formatTransferItem(t: TransferItem, idx: number): string {
   // Transfer-specific
   if (t.type === "transfer" || !t.type) {
     lines.push(kv("📞", "Driver", t.transferDriverPhone));
-    lines.push(kv("📍", "Meeting point", t.transferMeetingPoint));
+    if (t.transferMeetingPoint) lines.push(`📍 <b>Meeting point</b>: ${mapsLink(t.transferMeetingPoint)}`);
   }
 
   // Rental-specific
@@ -235,10 +257,10 @@ function formatTransferItem(t: TransferItem, idx: number): string {
     lines.push(kv("🏢", "Company", t.rentalCompany));
     lines.push(kv("🚗", "Car", t.carModel));
     if (t.pickupLocation || t.pickupDate) {
-      lines.push(`   📤 ${b("Pickup")}: ${esc(t.pickupLocation || "?")} — ${esc(fmtDateTime(t.pickupDate, t.pickupTime))}`);
+      lines.push(`   📤 ${b("Pickup")}: ${mapsLink(t.pickupLocation) || "?"} — ${esc(fmtDateTime(t.pickupDate, t.pickupTime))}`);
     }
     if (t.dropoffLocation || t.dropoffDate) {
-      lines.push(`   📥 ${b("Drop-off")}: ${esc(t.dropoffLocation || "?")} — ${esc(fmtDateTime(t.dropoffDate, t.dropoffTime))}`);
+      lines.push(`   📥 ${b("Drop-off")}: ${mapsLink(t.dropoffLocation) || "?"} — ${esc(fmtDateTime(t.dropoffDate, t.dropoffTime))}`);
     }
     if (t.rentalInsuranceType || t.rentalInsuranceInfo) {
       lines.push(`   🛡️ ${b("Insurance")}: ${esc([t.rentalInsuranceType, t.rentalInsuranceInfo].filter(Boolean).join(" — "))}`);
@@ -264,7 +286,7 @@ function formatAttractionItem(a: AttractionItem, idx: number): string {
   lines.push(`🎯 ${b(a.name || `Activity ${idx + 1}`)}`);
   lines.push(line("📝", a.description));
   if (a.date || a.time) lines.push(`📅 ${esc(fmtDateTime(a.date, a.time))}`);
-  lines.push(line("📍", a.location));
+  lines.push(mapsLine("📍", a.location));
   lines.push(kv("💰", "Price", a.price));
   lines.push(kv("📋", "Confirmation", a.confirmationNumber));
   lines.push(kv("📝", "Note", a.notes));
