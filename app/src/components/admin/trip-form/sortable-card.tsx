@@ -10,6 +10,8 @@ import { GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 interface SortableCardProps {
   id: string;
   title: React.ReactNode;
+  /** Brief summary shown below the title when the card is collapsed */
+  subtitle?: React.ReactNode;
   /** Buttons rendered at the right side of the header (AI fill, delete, etc.) */
   actions?: React.ReactNode;
   /** Additional className for the CardContent wrapper */
@@ -25,6 +27,7 @@ interface SortableCardProps {
 export function SortableCard({
   id,
   title,
+  subtitle,
   actions,
   contentClassName,
   children,
@@ -64,9 +67,14 @@ export function SortableCard({
               <GripVertical className="h-4 w-4" />
             </button>
 
-            <CardTitle className="min-w-0 flex-1 truncate text-base">
-              {title}
-            </CardTitle>
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <CardTitle className="text-base leading-tight">{title}</CardTitle>
+              {collapsed && subtitle && (
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {subtitle}
+                </p>
+              )}
+            </div>
 
             <div className="flex shrink-0 items-center gap-1">
               {actions}

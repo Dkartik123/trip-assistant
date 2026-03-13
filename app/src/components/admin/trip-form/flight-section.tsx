@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,12 +23,31 @@ import { applyToCard, mergeIncomingFlights } from "./use-trip-form";
 import { SortableList } from "./sortable-list";
 import { SortableCard } from "./sortable-card";
 
+function flightSubtitle(f: FlightItem): string {
+  const isTrain = (f.type ?? "flight") === "train";
+  const dep = f.departureCity || (isTrain ? f.departureStation : f.departureAirport);
+  const arr = f.arrivalCity || (isTrain ? f.arrivalStation : f.arrivalAirport);
+  const route = dep && arr ? `${dep} → ${arr}` : dep || arr;
+  const dDate = f.flightDate ? `${f.flightDate.slice(8, 10)}.${f.flightDate.slice(5, 7)}` : "";
+  const dTime = f.flightDate?.slice(11, 16) ?? "";
+  const aTime = f.arrivalDate?.slice(11, 16) ?? "";
+  const times = [dTime, aTime].filter(Boolean).join(" → ");
+  const when = [dDate, times].filter(Boolean).join(" ");
+  return [route, when].filter(Boolean).join(" · ");
+}
+function sortFlights(arr: FlightItem[]) {
+  return [...arr].sort((a, b) => (a.flightDate ?? "").localeCompare(b.flightDate ?? ""));
+}
+
 interface FlightSectionProps {
   flights: FlightItem[];
   setFlights: React.Dispatch<React.SetStateAction<FlightItem[]>>;
 }
 
 export function FlightSection({ flights, setFlights }: FlightSectionProps) {
+  // Sort by departure date on initial load
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setFlights(prev => sortFlights(prev)); }, []);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -39,7 +59,7 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
             onExtracted={(d) => {
               const arr = (d as ExtractedTripData).flights;
               if (arr?.length)
-                setFlights((prev) => mergeIncomingFlights(prev, arr));
+                setFlights((prev) => sortFlights(mergeIncomingFlights(prev, arr)));
             }}
           />
           <Button
@@ -84,6 +104,7 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
                   {(flight.type ?? "flight") === "train" ? "Поезд" : "Рейс"} {idx + 1}
                 </>
               }
+              subtitle={flightSubtitle(flight) || undefined}
               contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
               actions={
                 <>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,12 +16,24 @@ import { applyToCard } from "./use-trip-form";
 import { SortableList } from "./sortable-list";
 import { SortableCard } from "./sortable-card";
 
+function hotelSubtitle(h: HotelItem): string {
+  const ci = h.checkinDate ? `${h.checkinDate.slice(8, 10)}.${h.checkinDate.slice(5, 7)}` : "";
+  const co = h.checkoutDate ? `${h.checkoutDate.slice(8, 10)}.${h.checkoutDate.slice(5, 7)}` : "";
+  const dates = ci && co ? `${ci} – ${co}` : ci || co;
+  return [h.hotelName, dates].filter(Boolean).join(" · ");
+}
+function sortHotels(arr: HotelItem[]) {
+  return [...arr].sort((a, b) => (a.checkinDate ?? "").localeCompare(b.checkinDate ?? ""));
+}
+
 interface HotelSectionProps {
   hotels: HotelItem[];
   setHotels: React.Dispatch<React.SetStateAction<HotelItem[]>>;
 }
 
 export function HotelSection({ hotels, setHotels }: HotelSectionProps) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setHotels(prev => sortHotels(prev)); }, []);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -31,7 +44,7 @@ export function HotelSection({ hotels, setHotels }: HotelSectionProps) {
             compact
             onExtracted={(d) => {
               const arr = (d as ExtractedTripData).hotels;
-              if (arr?.length) setHotels((prev) => [...prev, ...arr]);
+              if (arr?.length) setHotels((prev) => sortHotels([...prev, ...arr]));
             }}
           />
           <Button
@@ -64,6 +77,7 @@ export function HotelSection({ hotels, setHotels }: HotelSectionProps) {
               key={`hotel-${idx}`}
               id={`hotel-${idx}`}
               title={`Отель ${idx + 1}`}
+              subtitle={hotelSubtitle(hotel) || undefined}
               contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
               actions={
                 <>

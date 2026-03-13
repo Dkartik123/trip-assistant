@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,29 @@ function TypeIcon({ type }: { type: TransferType }) {
   return <Comp className="h-4 w-4" />;
 }
 
+function transferSubtitle(t: TransferItem): string {
+  if (t.type === "rental") {
+    const name = [t.rentalCompany, t.carModel].filter(Boolean).join(" ");
+    const from = t.pickupDate ? `${t.pickupDate.slice(8, 10)}.${t.pickupDate.slice(5, 7)}` : "";
+    const to = t.dropoffDate ? `${t.dropoffDate.slice(8, 10)}.${t.dropoffDate.slice(5, 7)}` : "";
+    return [name, from && to ? `${from} – ${to}` : from || to].filter(Boolean).join(" · ");
+  }
+  const route =
+    t.fromLocation && t.toLocation
+      ? `${t.fromLocation} → ${t.toLocation}`
+      : t.fromLocation || t.toLocation;
+  const date = t.date ? `${t.date.slice(8, 10)}.${t.date.slice(5, 7)}` : "";
+  const when = [date, t.time].filter(Boolean).join(" ");
+  return [route, when].filter(Boolean).join(" · ");
+}
+function sortTransfers(arr: TransferItem[]) {
+  return [...arr].sort((a, b) => {
+    const da = a.type === "rental" ? a.pickupDate : a.date;
+    const db = b.type === "rental" ? b.pickupDate : b.date;
+    return (da ?? "").localeCompare(db ?? "");
+  });
+}
+
 interface TransferSectionProps {
   transfers: TransferItem[];
   setTransfers: React.Dispatch<React.SetStateAction<TransferItem[]>>;
@@ -56,6 +80,8 @@ export function TransferSection({
   transfers,
   setTransfers,
 }: TransferSectionProps) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setTransfers(prev => sortTransfers(prev)); }, []);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -66,7 +92,7 @@ export function TransferSection({
             compact
             onExtracted={(d) => {
               const arr = (d as ExtractedTripData).transfers;
-              if (arr?.length) setTransfers((prev) => [...prev, ...arr]);
+              if (arr?.length) setTransfers((prev) => sortTransfers([...prev, ...arr]));
             }}
           />
           <Button
@@ -103,6 +129,7 @@ export function TransferSection({
                 key={`transfer-${idx}`}
                 id={`transfer-${idx}`}
                 title={<><TypeIcon type={tType} />{" "}{typeLabel(tType)} {idx + 1}</>}
+                subtitle={transferSubtitle(transfer) || undefined}
                 contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
                 actions={
                   <>

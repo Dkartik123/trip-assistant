@@ -65,6 +65,7 @@ export function GuideSection({ guides, setGuides }: GuideSectionProps) {
               key={`guide-${idx}`}
               id={`guide-${idx}`}
               title={`Гид ${idx + 1}`}
+              subtitle={[guide.guideName, guide.guidePhone].filter(Boolean).join(" · ") || undefined}
               contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
               actions={
                 <>

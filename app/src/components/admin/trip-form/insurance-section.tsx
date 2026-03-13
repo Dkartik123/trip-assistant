@@ -72,6 +72,7 @@ export function InsuranceSection({
               key={`ins-${idx}`}
               id={`ins-${idx}`}
               title={`Страховка ${idx + 1}`}
+              subtitle={[ins.insuranceInfo.slice(0, 50), ins.insurancePhone].filter(Boolean).join(" · ") || undefined}
               contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
               actions={
                 <>

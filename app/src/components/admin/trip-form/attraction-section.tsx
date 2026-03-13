@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,15 @@ import { applyToCard } from "./use-trip-form";
 import { SortableList } from "./sortable-list";
 import { SortableCard } from "./sortable-card";
 
+function attractionSubtitle(a: AttractionItem): string {
+  const date = a.date ? `${a.date.slice(8, 10)}.${a.date.slice(5, 7)}` : "";
+  const when = [date, a.time].filter(Boolean).join(" ");
+  return [a.name, when].filter(Boolean).join(" · ");
+}
+function sortAttractions(arr: AttractionItem[]) {
+  return [...arr].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
+}
+
 interface AttractionSectionProps {
   attractions: AttractionItem[];
   setAttractions: React.Dispatch<React.SetStateAction<AttractionItem[]>>;
@@ -27,6 +37,8 @@ export function AttractionSection({
   attractions,
   setAttractions,
 }: AttractionSectionProps) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setAttractions(prev => sortAttractions(prev)); }, []);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -37,7 +49,7 @@ export function AttractionSection({
             compact
             onExtracted={(d) => {
               const arr = (d as ExtractedTripData).attractions;
-              if (arr?.length) setAttractions((prev) => [...prev, ...arr]);
+              if (arr?.length) setAttractions((prev) => sortAttractions([...prev, ...arr]));
             }}
           />
           <Button
@@ -72,6 +84,7 @@ export function AttractionSection({
               key={`attr-${idx}`}
               id={`attr-${idx}`}
               title={`Развлечение ${idx + 1}`}
+              subtitle={attractionSubtitle(attr) || undefined}
               contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
               actions={
                 <>
