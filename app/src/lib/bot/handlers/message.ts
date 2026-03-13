@@ -7,6 +7,7 @@ import {
   subscriberRepository,
 } from "@/lib/db/repositories";
 import { generateResponse } from "@/lib/services/ai.service";
+import { env } from "@/lib/config/env";
 
 const log = createLogger("bot:message");
 
@@ -101,6 +102,23 @@ export async function handleMessage(ctx: Context): Promise<void> {
     });
 
     await ctx.reply(response);
+
+    // Notify operator about client's message (fire-and-forget)
+    const operatorChatId = env.OPERATOR_TELEGRAM_CHAT_ID;
+    if (operatorChatId) {
+      const senderName = ctx.from?.first_name
+        ? [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(" ")
+        : `chat ${chatId}`;
+      const notifyText =
+        `💬 <b>Сообщение от клиента</b>\n` +
+        `👤 ${senderName}\n` +
+        `🗺️ ${trip.departureCity ?? "—"} → ${trip.arrivalCity ?? "—"}\n\n` +
+        `<i>${userText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</i>`;
+      const { getBot } = await import("@/lib/bot");
+      getBot().api.sendMessage(operatorChatId, notifyText, { parse_mode: "HTML" }).catch((err) => {
+        log.warn({ err, operatorChatId }, "Failed to notify operator about client message");
+      });
+    }
   } catch (error) {
     log.error({ error, chatId }, "Failed to handle message");
     await ctx.reply("⚠️ Something went wrong. Please try again.");

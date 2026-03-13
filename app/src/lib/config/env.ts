@@ -16,6 +16,8 @@ const envSchema = z.object({
   // Telegram
   TELEGRAM_BOT_TOKEN: z.string().min(1),
   TELEGRAM_WEBHOOK_SECRET: z.string().min(8).default("default-webhook-secret"),
+  // Optional: operator's Telegram chat ID to receive client message notifications
+  OPERATOR_TELEGRAM_CHAT_ID: z.string().optional().default(""),
 
   // AI
   GEMINI_API_KEY: z.string().startsWith("AIza"),
