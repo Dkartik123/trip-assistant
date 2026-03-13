@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Car, Plus, X, Footprints, Bus } from "lucide-react";
+import { arrayMove } from "@dnd-kit/sortable";
 import { AiFillDialog } from "@/components/admin/ai-fill-dialog";
 import type {
   TransferItem,
@@ -23,6 +24,8 @@ import type {
 import { emptyTransfer } from "@/lib/types/trip-sections";
 import { updateItem } from "@/lib/utils/form-helpers";
 import { applyToCard } from "./use-trip-form";
+import { SortableList } from "./sortable-list";
+import { SortableCard } from "./sortable-card";
 
 const TRANSFER_TYPE_OPTIONS: {
   value: TransferType;
@@ -89,42 +92,37 @@ export function TransferSection({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <SortableList
+          ids={transfers.map((_, i) => `transfer-${i}`)}
+          onReorder={(from, to) => setTransfers((prev) => arrayMove(prev, from, to))}
+        >
           {transfers.map((transfer, idx) => {
             const tType = (transfer.type ?? "transfer") as TransferType;
             return (
-              <Card key={idx}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <TypeIcon type={tType} />
-                      {typeLabel(tType)} {idx + 1}
-                    </CardTitle>
-                    <div className="flex items-center gap-1">
-                      <AiFillDialog
-                        category="transfer"
-                        compact
-                        onExtracted={(d) =>
-                          applyToCard(setTransfers, idx, "transfers", d)
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                        onClick={() =>
-                          setTransfers((prev) =>
-                            prev.filter((_, i) => i !== idx),
-                          )
-                        }
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <SortableCard
+                key={`transfer-${idx}`}
+                id={`transfer-${idx}`}
+                title={<><TypeIcon type={tType} />{" "}{typeLabel(tType)} {idx + 1}</>}
+                contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
+                actions={
+                  <>
+                    <AiFillDialog
+                      category="transfer"
+                      compact
+                      onExtracted={(d) => applyToCard(setTransfers, idx, "transfers", d)}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => setTransfers((prev) => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </>
+                }
+              >
                   {/* Type selector */}
                   <div className="space-y-2 sm:col-span-2">
                     <Label>Тип транспорта</Label>
@@ -502,11 +500,10 @@ export function TransferSection({
                       }
                     />
                   </div>
-                </CardContent>
-              </Card>
+              </SortableCard>
             );
           })}
-        </div>
+        </SortableList>
       )}
     </div>
   );

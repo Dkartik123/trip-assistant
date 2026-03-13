@@ -1,16 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Hotel, Plus, X } from "lucide-react";
+import { arrayMove } from "@dnd-kit/sortable";
 import { AiFillDialog } from "@/components/admin/ai-fill-dialog";
 import type { HotelItem, ExtractedTripData } from "@/lib/types/trip-sections";
 import { emptyHotel } from "@/lib/types/trip-sections";
 import { updateItem } from "@/lib/utils/form-helpers";
 import { applyToCard } from "./use-trip-form";
+import { SortableList } from "./sortable-list";
+import { SortableCard } from "./sortable-card";
 
 interface HotelSectionProps {
   hotels: HotelItem[];
@@ -52,35 +55,35 @@ export function HotelSection({ hotels, setHotels }: HotelSectionProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <SortableList
+          ids={hotels.map((_, i) => `hotel-${i}`)}
+          onReorder={(from, to) => setHotels((prev) => arrayMove(prev, from, to))}
+        >
           {hotels.map((hotel, idx) => (
-            <Card key={idx}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Отель {idx + 1}</CardTitle>
-                  <div className="flex items-center gap-1">
-                    <AiFillDialog
-                      category="hotel"
-                      compact
-                      onExtracted={(d) =>
-                        applyToCard(setHotels, idx, "hotels", d)
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={() =>
-                        setHotels((prev) => prev.filter((_, i) => i !== idx))
-                      }
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+            <SortableCard
+              key={`hotel-${idx}`}
+              id={`hotel-${idx}`}
+              title={`Отель ${idx + 1}`}
+              contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
+              actions={
+                <>
+                  <AiFillDialog
+                    category="hotel"
+                    compact
+                    onExtracted={(d) => applyToCard(setHotels, idx, "hotels", d)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => setHotels((prev) => prev.filter((_, i) => i !== idx))}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              }
+            >
                 <div className="space-y-2">
                   <Label>Название отеля</Label>
                   <Input
@@ -341,10 +344,9 @@ export function HotelSection({ hotels, setHotels }: HotelSectionProps) {
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+            </SortableCard>
           ))}
-        </div>
+        </SortableList>
       )}
     </div>
   );

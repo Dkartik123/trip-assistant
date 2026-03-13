@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -13,11 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plane, Plus, X, TrainFront } from "lucide-react";
+import { arrayMove } from "@dnd-kit/sortable";
 import { AiFillDialog } from "@/components/admin/ai-fill-dialog";
 import type { FlightItem, RouteType, ExtractedTripData } from "@/lib/types/trip-sections";
 import { emptyFlight, emptyPassenger } from "@/lib/types/trip-sections";
 import { updateItem } from "@/lib/utils/form-helpers";
 import { applyToCard, mergeIncomingFlights } from "./use-trip-form";
+import { SortableList } from "./sortable-list";
+import { SortableCard } from "./sortable-card";
 
 interface FlightSectionProps {
   flights: FlightItem[];
@@ -62,42 +65,45 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <SortableList
+          ids={flights.map((_, i) => `flight-${i}`)}
+          onReorder={(from, to) => setFlights((prev) => arrayMove(prev, from, to))}
+        >
           {flights.map((flight, idx) => (
-            <Card key={idx}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    {(flight.type ?? "flight") === "train" ? (
-                      <TrainFront className="h-4 w-4" />
-                    ) : (
-                      <Plane className="h-4 w-4" />
-                    )}
-                    {(flight.type ?? "flight") === "train" ? "Поезд" : "Рейс"} {idx + 1}
-                  </CardTitle>
-                  <div className="flex items-center gap-1">
-                    <AiFillDialog
-                      category="flight"
-                      compact
-                      onExtracted={(d) =>
-                        applyToCard(setFlights, idx, "flights", d)
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={() =>
-                        setFlights((prev) => prev.filter((_, i) => i !== idx))
-                      }
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <SortableCard
+              key={`flight-${idx}`}
+              id={`flight-${idx}`}
+              title={
+                <>
+                  {(flight.type ?? "flight") === "train" ? (
+                    <TrainFront className="h-4 w-4" />
+                  ) : (
+                    <Plane className="h-4 w-4" />
+                  )}
+                  {" "}
+                  {(flight.type ?? "flight") === "train" ? "Поезд" : "Рейс"} {idx + 1}
+                </>
+              }
+              contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              actions={
+                <>
+                  <AiFillDialog
+                    category="flight"
+                    compact
+                    onExtracted={(d) => applyToCard(setFlights, idx, "flights", d)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => setFlights((prev) => prev.filter((_, i) => i !== idx))}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              }
+            >
                 {/* Type selector */}
                 <div className="space-y-2 sm:col-span-2 lg:col-span-3">
                   <Label>Тип маршрута</Label>
@@ -367,10 +373,9 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
                     />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+            </SortableCard>
           ))}
-        </div>
+        </SortableList>
       )}
     </div>
   );

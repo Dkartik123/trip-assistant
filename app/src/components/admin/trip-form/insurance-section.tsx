@@ -1,11 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Shield, Plus, X } from "lucide-react";
+import { arrayMove } from "@dnd-kit/sortable";
 import { AiFillDialog } from "@/components/admin/ai-fill-dialog";
 import type {
   InsuranceItem,
@@ -14,6 +15,8 @@ import type {
 import { emptyInsurance } from "@/lib/types/trip-sections";
 import { updateItem } from "@/lib/utils/form-helpers";
 import { applyToCard } from "./use-trip-form";
+import { SortableList } from "./sortable-list";
+import { SortableCard } from "./sortable-card";
 
 interface InsuranceSectionProps {
   insurances: InsuranceItem[];
@@ -60,39 +63,35 @@ export function InsuranceSection({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <SortableList
+          ids={insurances.map((_, i) => `ins-${i}`)}
+          onReorder={(from, to) => setInsurances((prev) => arrayMove(prev, from, to))}
+        >
           {insurances.map((ins, idx) => (
-            <Card key={idx}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">
-                    Страховка {idx + 1}
-                  </CardTitle>
-                  <div className="flex items-center gap-1">
-                    <AiFillDialog
-                      category="insurance"
-                      compact
-                      onExtracted={(d) =>
-                        applyToCard(setInsurances, idx, "insurances", d)
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={() =>
-                        setInsurances((prev) =>
-                          prev.filter((_, i) => i !== idx),
-                        )
-                      }
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+            <SortableCard
+              key={`ins-${idx}`}
+              id={`ins-${idx}`}
+              title={`Страховка ${idx + 1}`}
+              contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
+              actions={
+                <>
+                  <AiFillDialog
+                    category="insurance"
+                    compact
+                    onExtracted={(d) => applyToCard(setInsurances, idx, "insurances", d)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => setInsurances((prev) => prev.filter((_, i) => i !== idx))}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              }
+            >
                 <div className="space-y-2 sm:col-span-2">
                   <Label>Информация о страховке</Label>
                   <Textarea
@@ -123,10 +122,9 @@ export function InsuranceSection({
                     }
                   />
                 </div>
-              </CardContent>
-            </Card>
+            </SortableCard>
           ))}
-        </div>
+        </SortableList>
       )}
     </div>
   );
