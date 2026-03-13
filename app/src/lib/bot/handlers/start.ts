@@ -87,7 +87,7 @@ export async function handleStart(ctx: Context): Promise<void> {
     // For existing subscribers — skip heavy AI work, just remind them of available commands
     if (!isNewSubscriber) {
       await ctx.reply(
-        `✅ You're already subscribed to this trip, ${b(subscriberName)}!\n\nUse /trip to see the full trip details.`,
+        `✅ You're already subscribed to this trip, <b>${subscriberName}</b>!\n\nUse /trip to see the full trip details.`,
         { parse_mode: "HTML" },
       );
       return;
