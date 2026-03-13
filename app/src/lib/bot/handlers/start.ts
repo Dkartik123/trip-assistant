@@ -82,8 +82,18 @@ export async function handleStart(ctx: Context): Promise<void> {
       isNewSubscriber ? "New subscriber joined trip" : "Existing subscriber reconnected",
     );
 
-    // Send immediate acknowledgment — must return 200 to Telegram quickly to avoid retries
     const lang = subscriber.language ?? client.language;
+
+    // For existing subscribers — skip heavy AI work, just remind them of available commands
+    if (!isNewSubscriber) {
+      await ctx.reply(
+        `✅ You're already subscribed to this trip, ${b(subscriberName)}!\n\nUse /trip to see the full trip details.`,
+        { parse_mode: "HTML" },
+      );
+      return;
+    }
+
+    // Send immediate acknowledgment — must return 200 to Telegram quickly to avoid retries
     const welcome = tripMessageService.formatWelcome(client.name);
     await ctx.reply(welcome, { parse_mode: "HTML" });
     await ctx.reply("⏳ Preparing your full trip summary...");
@@ -105,7 +115,7 @@ export async function handleStart(ctx: Context): Promise<void> {
         }
       } catch (error) {
         log.error({ error, chatId }, "Failed to send AI trip summary");
-        await ctx.reply("⚠️ Could not load full trip details. Please try again later.").catch(() => {});
+        await ctx.reply("⚠️ Could not load trip details. Please use /trip to view your trip, or contact your travel agency.").catch(() => {});
       }
     })();
     // Handler returns here → grammY sends 200 to Telegram immediately
