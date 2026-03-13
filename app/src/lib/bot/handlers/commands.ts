@@ -44,6 +44,7 @@ async function resolveTrip(ctx: Context): Promise<{ trip: Trip; language: string
 
 /**
  * /trip — Full trip summary using tripMessageService.
+ * Heavy AI work fires in background so webhook returns 200 immediately.
  */
 export async function handleTripCommand(ctx: Context): Promise<void> {
   try {
@@ -51,13 +52,21 @@ export async function handleTripCommand(ctx: Context): Promise<void> {
     if (!result) return;
     const { trip, language } = result;
 
-    await ctx.replyWithChatAction("typing");
-    const summarized = await summarizeTripForClient(trip);
-    const parts = tripMessageService.formatFullSummary(summarized);
-    const translated = await translateParts(parts, language);
-    for (const part of translated) {
-      await ctx.reply(part, { parse_mode: "HTML" });
-    }
+    await ctx.reply("⏳ Loading your trip summary...");
+
+    void (async () => {
+      try {
+        const summarized = await summarizeTripForClient(trip);
+        const parts = tripMessageService.formatFullSummary(summarized);
+        const translated = await translateParts(parts, language);
+        for (const part of translated) {
+          await ctx.reply(part, { parse_mode: "HTML" });
+        }
+      } catch (error) {
+        log.error({ error }, "Failed /trip background work");
+        await ctx.reply("⚠️ Could not load trip info. Please try again.").catch(() => {});
+      }
+    })();
   } catch (error) {
     log.error({ error }, "Failed /trip command");
     await ctx.reply("⚠️ Could not load trip info.");
@@ -83,7 +92,7 @@ export async function handleFlightCommand(ctx: Context): Promise<void> {
 }
 
 /**
- * /hotel — Hotel info.
+ * /hotel — Hotel info (AI summarize + translate in background).
  */
 export async function handleHotelCommand(ctx: Context): Promise<void> {
   try {
@@ -91,11 +100,19 @@ export async function handleHotelCommand(ctx: Context): Promise<void> {
     if (!result) return;
     const { trip, language } = result;
 
-    await ctx.replyWithChatAction("typing");
-    const summarized = await summarizeTripForClient(trip);
-    const text = tripMessageService.formatHotels(summarized);
-    const translated = await translateMessage(text, language);
-    await ctx.reply(translated, { parse_mode: "HTML" });
+    await ctx.reply("⏳ Loading hotel details...");
+
+    void (async () => {
+      try {
+        const summarized = await summarizeTripForClient(trip);
+        const text = tripMessageService.formatHotels(summarized);
+        const translated = await translateMessage(text, language);
+        await ctx.reply(translated, { parse_mode: "HTML" });
+      } catch (error) {
+        log.error({ error }, "Failed /hotel background work");
+        await ctx.reply("⚠️ Could not load hotel info.").catch(() => {});
+      }
+    })();
   } catch (error) {
     log.error({ error }, "Failed /hotel command");
     await ctx.reply("⚠️ Could not load hotel info.");
@@ -121,7 +138,7 @@ export async function handleGuideCommand(ctx: Context): Promise<void> {
 }
 
 /**
- * /docs — Trip documents summary (insurance + notes).
+ * /docs — Trip documents summary (insurance + notes). AI work in background.
  */
 export async function handleDocsCommand(ctx: Context): Promise<void> {
   try {
@@ -129,11 +146,19 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
     if (!result) return;
     const { trip, language } = result;
 
-    await ctx.replyWithChatAction("typing");
-    const summarized = await summarizeTripForClient(trip);
-    const text = tripMessageService.formatDocs(summarized);
-    const translated = await translateMessage(text, language);
-    await ctx.reply(translated, { parse_mode: "HTML" });
+    await ctx.reply("⏳ Loading documents...");
+
+    void (async () => {
+      try {
+        const summarized = await summarizeTripForClient(trip);
+        const text = tripMessageService.formatDocs(summarized);
+        const translated = await translateMessage(text, language);
+        await ctx.reply(translated, { parse_mode: "HTML" });
+      } catch (error) {
+        log.error({ error }, "Failed /docs background work");
+        await ctx.reply("⚠️ Could not load documents.").catch(() => {});
+      }
+    })();
   } catch (error) {
     log.error({ error }, "Failed /docs command");
     await ctx.reply("⚠️ Could not load documents.");

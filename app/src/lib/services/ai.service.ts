@@ -26,12 +26,15 @@ const PRO_MODEL = "gemini-2.0-flash-lite";
 
 function formatFlights(raw: unknown): string {
   const flights = (raw as FlightItem[] | null) ?? [];
-  if (flights.length === 0) return "- **Flights**: N/A";
+  if (flights.length === 0) return "- **Flights/Trains**: N/A";
   return flights
-    .map(
-      (f, i) =>
-        `- **Flight ${i + 1}**: ${f.flightNumber || "N/A"} on ${f.flightDate || "N/A"}\n  Route: ${f.departureCity || "?"} (${f.departureAirport || "?"}) → ${f.arrivalCity || "?"} (${f.arrivalAirport || "?"})\n  Arrival: ${f.arrivalDate || "N/A"}, Gate: ${f.gate || "Not assigned yet"}`,
-    )
+    .map((f, i) => {
+      const isTrain = (f as { type?: string }).type === "train";
+      if (isTrain) {
+        return `- **Train ${i + 1}**: #${(f as { trainNumber?: string }).trainNumber || "N/A"}\n  Route: ${f.departureCity || "?"} (${(f as { departureStation?: string }).departureStation || "?"}) → ${f.arrivalCity || "?"} (${(f as { arrivalStation?: string }).arrivalStation || "?"})\n  Departure: ${f.flightDate || "N/A"}, Arrival: ${f.arrivalDate || "N/A"}\n  Seat: ${(f as { seat?: string }).seat || "N/A"}, Class: ${(f as { carriageClass?: string }).carriageClass || "N/A"}`;
+      }
+      return `- **Flight ${i + 1}**: ${f.flightNumber || "N/A"}\n  Route: ${f.departureCity || "?"} (${f.departureAirport || "?"}) → ${f.arrivalCity || "?"} (${f.arrivalAirport || "?"})\n  Departure: ${f.flightDate || "N/A"}, Arrival: ${f.arrivalDate || "N/A"}, Gate: ${f.gate || "N/A"}`;
+    })
     .join("\n");
 }
 
@@ -59,12 +62,16 @@ function formatGuides(raw: unknown): string {
 
 function formatTransfers(raw: unknown): string {
   const transfers = (raw as TransferItem[] | null) ?? [];
-  if (transfers.length === 0) return "- **Transfer**: N/A";
+  if (transfers.length === 0) return "- **Transfers**: N/A";
   return transfers
-    .map(
-      (t, i) =>
-        `- **Transfer ${i + 1}**: ${t.transferInfo || "N/A"}, Driver: ${t.transferDriverPhone || "N/A"}, Meeting: ${t.transferMeetingPoint || "N/A"}`,
-    )
+    .map((t, i) => {
+      const tf = t as TransferItem & { type?: string; fromLocation?: string; toLocation?: string; date?: string; time?: string; price?: string };
+      const typeLabel = tf.type === "rental" ? "Car Rental" : tf.type === "walking" ? "Walking" : "Transfer";
+      const route = tf.fromLocation && tf.toLocation
+        ? `${tf.fromLocation} → ${tf.toLocation}`
+        : tf.fromLocation || tf.toLocation || "N/A";
+      return `- **${typeLabel} ${i + 1}**: ${tf.transferInfo || typeLabel}\n  Route: ${route}, Date: ${tf.date || "N/A"} ${tf.time || ""}\n  Driver: ${tf.transferDriverPhone || "N/A"}, Meeting: ${tf.transferMeetingPoint || "N/A"}, Price: ${tf.price || "N/A"}`;
+    })
     .join("\n");
 }
 
