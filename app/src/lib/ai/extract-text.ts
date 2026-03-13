@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PDFParse } from "pdf-parse";
+import pdf from "pdf-parse";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = new Set([
@@ -40,11 +40,8 @@ export async function extractTextFromFormData(
     const buffer = Buffer.from(await file.arrayBuffer());
 
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-      const parser = new PDFParse({ data: new Uint8Array(buffer) });
-      const result = await parser.getText();
-      const extractedText = result.text;
-      await parser.destroy();
-      return extractedText;
+      const result = await pdf(buffer);
+      return result.text;
     }
 
     return buffer.toString("utf-8");
