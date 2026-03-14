@@ -23,7 +23,11 @@ function hotelSubtitle(h: HotelItem): string {
   return [h.hotelName, dates].filter(Boolean).join(" · ");
 }
 function sortHotels(arr: HotelItem[]) {
-  return [...arr].sort((a, b) => (a.checkinDate ?? "").localeCompare(b.checkinDate ?? ""));
+  return [...arr].sort((a, b) => {
+    const keyA = `${a.checkinDate ?? ""} ${a.checkinTime ?? ""}`.trim();
+    const keyB = `${b.checkinDate ?? ""} ${b.checkinTime ?? ""}`.trim();
+    return keyA.localeCompare(keyB);
+  });
 }
 
 interface HotelSectionProps {
