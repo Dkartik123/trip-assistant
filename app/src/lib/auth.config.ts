@@ -34,7 +34,8 @@ export const authConfig = {
       if (
         pathname.startsWith("/api/auth") ||
         pathname.startsWith("/api/webhook") ||
-        pathname.startsWith("/api/health")
+        pathname.startsWith("/api/health") ||
+        pathname.startsWith("/api/contact")
       ) {
         return true;
       }

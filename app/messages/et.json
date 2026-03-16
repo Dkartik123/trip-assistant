@@ -1,0 +1,149 @@
+{
+  "nav": {
+    "features": "Funktsioonid",
+    "pricing": "Hinnad",
+    "demo": "Demo",
+    "contact": "Kontakt",
+    "signIn": "Logi sisse"
+  },
+  "hero": {
+    "badge": "AI-põhine reisiassistent",
+    "title": "Teie turistid saavad vastused kohe.",
+    "titleHighlight": "Teie säästate tunde.",
+    "subtitle": "AI-vestlusrobot reisibüroodele — vastab klientide küsimustele 24/7 Telegrami ja WhatsAppi kaudu reisiandmete põhjal.",
+    "cta": "Taotle demot",
+    "ctaSecondary": "Kuidas see töötab"
+  },
+  "features": {
+    "title": "Kõik, mida teie büroo vajab",
+    "subtitle": "Üks platvorm turistidega suhtlemise automatiseerimiseks ja juhtide aja säästmiseks.",
+    "ai": {
+      "title": "AI-põhised vastused",
+      "description": "Gemini AI loeb reisiandmeid — lennud, hotellid, transfeerid — ja vastab turistide küsimustele kohe mis tahes keeles."
+    },
+    "telegram": {
+      "title": "Telegrami robot",
+      "description": "Turistid kirjutavad robotile ja saavad täpsed vastused oma reisi kohta. Ilma rakenduste installimiseta."
+    },
+    "voice": {
+      "title": "Häälsõnumid",
+      "description": "Turistid saadavad häälsõnumeid — Whisper transkribeerib, AI vastab. Loomulik vestlus ilma tõketeta."
+    },
+    "notifications": {
+      "title": "Nutikad teavitused",
+      "description": "Automaatsed meeldetuletused: enne väljumist, registreerimine, transfeer, tagasilend. Täielikult kohandatav ajakava."
+    },
+    "chat": {
+      "title": "Operaatori vestlus",
+      "description": "Kui AI ei saa vastata — juhid liituvad otse adminpaneelist. Sujuv üleminek, täielik ajalugu."
+    },
+    "multilang": {
+      "title": "Mitmekeelne",
+      "description": "AI vastab turisti keeles. Reisiandmed ühes keeles, vastused teises — automaatne tõlge."
+    }
+  },
+  "demo": {
+    "title": "Vaadake Trip Assistanti tegevuses",
+    "subtitle": "Kuidas turist esitab küsimuse ja saab kohese AI-põhise vastuse.",
+    "placeholder": "Demovideo tulekul",
+    "playButton": "Vaata demot"
+  },
+  "pricing": {
+    "title": "Lihtsad ja läbipaistvad hinnad",
+    "subtitle": "14 päeva tasuta. Krediitkaarti pole vaja.",
+    "monthly": "/kuus",
+    "popular": "Populaarseim",
+    "cta": "Alusta",
+    "ctaPopular": "Proovi tasuta",
+    "starter": {
+      "name": "Algaja",
+      "price": "49",
+      "description": "Väikestele büroodele alustamiseks",
+      "features": [
+        "Kuni 50 reisi",
+        "1 juht",
+        "Telegrami robot",
+        "AI-vastused",
+        "Nutikad teavitused",
+        "E-posti tugi"
+      ]
+    },
+    "pro": {
+      "name": "Professionaalne",
+      "price": "99",
+      "description": "Kasvavatele büroodele mitme juhiga",
+      "features": [
+        "Kuni 200 reisi",
+        "5 juhti",
+        "Telegram + WhatsApp",
+        "AI-vastused + hääl",
+        "Operaatori vestlus",
+        "Prioriteetne tugi",
+        "Analüütika paneel"
+      ]
+    },
+    "business": {
+      "name": "Äri",
+      "price": "199",
+      "description": "Suurtele büroodele täieliku automatiseerimisega",
+      "features": [
+        "Piiramatu arv reise",
+        "20 juhti",
+        "Kõik kanalid",
+        "Täiustatud AI + hääl",
+        "Täielik operaatori komplekt",
+        "API juurdepääs",
+        "Pühendunud tugi",
+        "Kohandatud integratsioonid"
+      ]
+    }
+  },
+  "testimonials": {
+    "title": "Reisibürood usaldavad meid",
+    "subtitle": "Vaadake, mida meie pilootpartnerid Trip Assistanti kohta ütlevad.",
+    "comingSoon": "Pilootbüroode tagasiside tulekul",
+    "items": [
+      {
+        "quote": "Meie juhid kulutasid 3 tundi päevas samadele küsimustele vastamiseks. Nüüd käsitleb robot 80% neist automaatselt.",
+        "author": "Pilootbüroo",
+        "role": "Reisijuht"
+      },
+      {
+        "quote": "Turistidele meeldib koheste vastuste saamine kell 2 öösel. Meie vastamisaeg vähenes tundidelt sekunditele.",
+        "author": "Pilootbüroo",
+        "role": "Operatsioonide direktor"
+      },
+      {
+        "quote": "Seadistamine võttis 15 minutit. Importisime reisid ja robot oli valmis. Uskumatult lihtne.",
+        "author": "Pilootbüroo",
+        "role": "Büroo omanik"
+      }
+    ]
+  },
+  "contact": {
+    "title": "Valmis säästma oma meeskonna aega iga nädal?",
+    "subtitle": "Taotlege demot ja näitame, kuidas Trip Assistant teie büroo jaoks töötab.",
+    "form": {
+      "name": "Teie nimi",
+      "email": "Tööe-post",
+      "agency": "Büroo nimi",
+      "message": "Rääkige meile oma büroost",
+      "submit": "Taotle demot",
+      "sending": "Saatmine...",
+      "success": "Täname! Võtame teiega ühendust 24 tunni jooksul.",
+      "error": "Midagi läks valesti. Proovige uuesti või kirjutage meile otse."
+    }
+  },
+  "footer": {
+    "description": "AI-põhine reisiassistent büroodele. Automatiseerige turistidega suhtlemine Telegrami ja WhatsAppi kaudu.",
+    "product": "Toode",
+    "company": "Ettevõte",
+    "legal": "Juriidiline",
+    "privacy": "Privaatsuspoliitika",
+    "terms": "Kasutustingimused",
+    "about": "Meist",
+    "blog": "Blogi",
+    "rights": "Kõik õigused kaitstud.",
+    "bot": "Proovi robotit"
+  }
+}

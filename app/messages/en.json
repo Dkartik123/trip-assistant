@@ -1,0 +1,149 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "demo": "Demo",
+    "contact": "Contact",
+    "signIn": "Sign In"
+  },
+  "hero": {
+    "badge": "AI-Powered Travel Assistant",
+    "title": "Your tourists get instant answers.",
+    "titleHighlight": "You save hours.",
+    "subtitle": "AI chatbot for travel agencies — answers client questions 24/7 via Telegram & WhatsApp using your trip data.",
+    "cta": "Request a Demo",
+    "ctaSecondary": "See How It Works"
+  },
+  "features": {
+    "title": "Everything your agency needs",
+    "subtitle": "One platform to automate tourist communication and save your managers' time.",
+    "ai": {
+      "title": "AI-Powered Answers",
+      "description": "Gemini AI reads trip details — flights, hotels, transfers — and answers tourist questions instantly in any language."
+    },
+    "telegram": {
+      "title": "Telegram Bot",
+      "description": "Tourists message your bot and get accurate answers about their trip. No app installs, no extra logins."
+    },
+    "voice": {
+      "title": "Voice Messages",
+      "description": "Tourists send voice messages — Whisper transcribes, AI responds. Natural conversation, zero friction."
+    },
+    "notifications": {
+      "title": "Smart Notifications",
+      "description": "Automated reminders: before departure, check-in, transfer pickup, return flight. Fully customizable schedule."
+    },
+    "chat": {
+      "title": "Operator Chat",
+      "description": "When AI can't answer — managers step in directly from the admin panel. Seamless handoff, full history."
+    },
+    "multilang": {
+      "title": "Multilingual",
+      "description": "AI responds in the tourist's language. Trip data in one language, answers in another — automatic translation."
+    }
+  },
+  "demo": {
+    "title": "See Trip Assistant in Action",
+    "subtitle": "Watch how a tourist asks a question and gets an instant AI-powered answer.",
+    "placeholder": "Demo video coming soon",
+    "playButton": "Watch Demo"
+  },
+  "pricing": {
+    "title": "Simple, transparent pricing",
+    "subtitle": "Start free for 14 days. No credit card required.",
+    "monthly": "/month",
+    "popular": "Most Popular",
+    "cta": "Get Started",
+    "ctaPopular": "Start Free Trial",
+    "starter": {
+      "name": "Starter",
+      "price": "49",
+      "description": "For small agencies just getting started",
+      "features": [
+        "Up to 50 trips",
+        "1 manager",
+        "Telegram bot",
+        "AI answers",
+        "Smart notifications",
+        "Email support"
+      ]
+    },
+    "pro": {
+      "name": "Professional",
+      "price": "99",
+      "description": "For growing agencies with multiple managers",
+      "features": [
+        "Up to 200 trips",
+        "5 managers",
+        "Telegram + WhatsApp",
+        "AI answers + voice",
+        "Operator chat",
+        "Priority support",
+        "Analytics dashboard"
+      ]
+    },
+    "business": {
+      "name": "Business",
+      "price": "199",
+      "description": "For large agencies with full automation needs",
+      "features": [
+        "Unlimited trips",
+        "20 managers",
+        "All channels",
+        "Advanced AI + voice",
+        "Full operator suite",
+        "API access",
+        "Dedicated support",
+        "Custom integrations"
+      ]
+    }
+  },
+  "testimonials": {
+    "title": "Trusted by travel agencies",
+    "subtitle": "See what our pilot partners say about Trip Assistant.",
+    "comingSoon": "Testimonials from pilot agencies coming soon",
+    "items": [
+      {
+        "quote": "Our managers used to spend 3 hours a day answering the same questions. Now the bot handles 80% of them automatically.",
+        "author": "Pilot Agency",
+        "role": "Travel Manager"
+      },
+      {
+        "quote": "Tourists love getting instant answers at 2 AM. Our response time went from hours to seconds.",
+        "author": "Pilot Agency",
+        "role": "Operations Director"
+      },
+      {
+        "quote": "The setup took 15 minutes. We imported our trips and the bot was ready. Incredibly simple.",
+        "author": "Pilot Agency",
+        "role": "Agency Owner"
+      }
+    ]
+  },
+  "contact": {
+    "title": "Ready to save your team hours every week?",
+    "subtitle": "Request a demo and we'll show you how Trip Assistant works for your agency.",
+    "form": {
+      "name": "Your name",
+      "email": "Work email",
+      "agency": "Agency name",
+      "message": "Tell us about your agency",
+      "submit": "Request Demo",
+      "sending": "Sending...",
+      "success": "Thank you! We'll get back to you within 24 hours.",
+      "error": "Something went wrong. Please try again or email us directly."
+    }
+  },
+  "footer": {
+    "description": "AI-powered travel assistant for agencies. Automate tourist communication via Telegram & WhatsApp.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "about": "About",
+    "blog": "Blog",
+    "rights": "All rights reserved.",
+    "bot": "Try the Bot"
+  }
+}
