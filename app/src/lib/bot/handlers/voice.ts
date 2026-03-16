@@ -104,7 +104,12 @@ export async function handleVoice(ctx: Context): Promise<void> {
     });
 
     // Reply with transcription context + answer
-    await ctx.reply(`🎤 "${transcribedText}"\n\n${aiResponse}`);
+    // Escape transcribed text to avoid breaking HTML parse_mode
+    const safeTranscription = transcribedText
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    await ctx.reply(`🎤 "${safeTranscription}"\n\n${aiResponse}`, { parse_mode: "HTML" });
   } catch (error) {
     log.error({ error, chatId }, "Failed to handle voice message");
     await ctx.reply("⚠️ Could not process voice message. Try typing instead.");
