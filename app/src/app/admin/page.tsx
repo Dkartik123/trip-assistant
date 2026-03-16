@@ -35,11 +35,11 @@ function formatDate(dateStr: Date | null) {
 
 const statusMap: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "outline" }
+  { label: string; className: string }
 > = {
-  draft: { label: "Черновик", variant: "secondary" },
-  active: { label: "Активна", variant: "default" },
-  completed: { label: "Завершена", variant: "outline" },
+  draft: { label: "Черновик", className: "bg-amber-100 text-amber-700 border-transparent dark:bg-amber-900/30 dark:text-amber-400" },
+  active: { label: "Активна", className: "bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-900/30 dark:text-emerald-400" },
+  completed: { label: "Завершена", className: "bg-sky-100 text-sky-700 border-transparent dark:bg-sky-900/30 dark:text-sky-400" },
 };
 
 export default async function AdminDashboardPage() {
@@ -62,23 +62,26 @@ export default async function AdminDashboardPage() {
       description: "текущих поездок",
       icon: Plane,
       color: "text-blue-600",
-      bg: "bg-blue-50",
+      bg: "bg-blue-50 dark:bg-blue-950/50",
+      borderColor: "border-l-blue-500",
     },
     {
       title: "Клиенты",
       value: String(clients.length),
       description: "всего клиентов",
       icon: Users,
-      color: "text-green-600",
-      bg: "bg-green-50",
+      color: "text-emerald-600",
+      bg: "bg-emerald-50 dark:bg-emerald-950/50",
+      borderColor: "border-l-emerald-500",
     },
     {
       title: "Сообщений сегодня",
       value: String(messagesToday),
       description: "вопросов обработано",
       icon: MessageSquare,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
+      color: "text-violet-600",
+      bg: "bg-violet-50 dark:bg-violet-950/50",
+      borderColor: "border-l-violet-500",
     },
     {
       title: "Уведомления",
@@ -86,7 +89,8 @@ export default async function AdminDashboardPage() {
       description: "ожидают отправки",
       icon: Bell,
       color: "text-orange-600",
-      bg: "bg-orange-50",
+      bg: "bg-orange-50 dark:bg-orange-950/50",
+      borderColor: "border-l-orange-500",
     },
   ];
 
@@ -102,7 +106,7 @@ export default async function AdminDashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title}>
+          <Card key={stat.title} className={`border-l-4 ${stat.borderColor}`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
@@ -112,8 +116,8 @@ export default async function AdminDashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {stat.description}
               </p>
             </CardContent>
@@ -161,7 +165,7 @@ export default async function AdminDashboardPage() {
                         {formatDate(trip.flightDate)}
                       </span>
                       <Badge
-                        variant={statusMap[trip.status]?.variant ?? "outline"}
+                        className={statusMap[trip.status]?.className ?? "bg-muted text-muted-foreground border-transparent"}
                       >
                         {statusMap[trip.status]?.label ?? trip.status}
                       </Badge>

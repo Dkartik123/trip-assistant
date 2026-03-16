@@ -15,9 +15,9 @@ import { signOut } from "./actions";
 
 export function AdminHeader() {
   return (
-    <header className="flex h-16 items-center justify-between border-b px-6">
+    <header className="flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-6 sticky top-0 z-10">
       <div className="md:hidden w-10" />
-      <h2 className="text-lg font-semibold md:text-xl">AI Travel Assistant</h2>
+      <h2 className="text-base font-semibold text-foreground md:text-lg tracking-tight">AI Travel Assistant</h2>
       <DropdownMenu>
         <DropdownMenuTrigger render={<button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring" />}>
             <Avatar className="h-8 w-8">

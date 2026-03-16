@@ -14,7 +14,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 
 const navigation = [
@@ -28,12 +27,19 @@ const navigation = [
 function SidebarContent({ pathname }: { pathname: string }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-2 px-6">
-        <Plane className="h-6 w-6 text-primary" />
-        <span className="text-lg font-bold">Trip Assistant</span>
+      {/* Brand header */}
+      <div className="flex h-16 items-center gap-3 px-5 border-b border-sidebar-border">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary/20 shrink-0">
+          <Plane className="h-4 w-4 text-sidebar-primary" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-sidebar-foreground leading-tight">Trip Assistant</p>
+          <p className="text-[11px] text-sidebar-foreground/50 leading-tight">Travel Management</p>
+        </div>
       </div>
-      <Separator />
-      <nav className="flex-1 space-y-1 px-3 py-4">
+
+      {/* Navigation */}
+      <nav className="flex-1 space-y-0.5 px-3 py-4">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -43,21 +49,25 @@ function SidebarContent({ pathname }: { pathname: string }) {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "bg-sidebar-accent text-sidebar-foreground border-l-2 border-sidebar-primary"
+                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground border-l-2 border-transparent",
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? "text-sidebar-primary" : "")} />
               {item.name}
             </Link>
           );
         })}
       </nav>
-      <Separator />
-      <div className="p-3">
-        <Button variant="ghost" className="w-full justify-start gap-3">
+
+      {/* Footer */}
+      <div className="border-t border-sidebar-border p-3">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+        >
           <LogOut className="h-4 w-4" />
           Выйти
         </Button>
@@ -83,7 +93,7 @@ export function AdminSidebar() {
       </Sheet>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:bg-sidebar">
+      <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-sidebar-border md:bg-sidebar">
         <SidebarContent pathname={pathname} />
       </aside>
     </>

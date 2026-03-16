@@ -89,9 +89,9 @@ interface SubscriberData {
 }
 
 const statusMap = {
-  draft: { label: "Черновик", variant: "secondary" as const },
-  active: { label: "Активна", variant: "default" as const },
-  completed: { label: "Завершена", variant: "outline" as const },
+  draft: { label: "Черновик", className: "bg-amber-100 text-amber-700 border-transparent dark:bg-amber-900/30 dark:text-amber-400" },
+  active: { label: "Активна", className: "bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-900/30 dark:text-emerald-400" },
+  completed: { label: "Завершена", className: "bg-sky-100 text-sky-700 border-transparent dark:bg-sky-900/30 dark:text-sky-400" },
 };
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
@@ -152,7 +152,7 @@ export function TripDetailClient({
               <h1 className="text-2xl font-bold tracking-tight">
                 {trip.clientName}
               </h1>
-              <Badge variant={statusMap[trip.status].variant}>
+              <Badge className={statusMap[trip.status].className}>
                 {statusMap[trip.status].label}
               </Badge>
             </div>
