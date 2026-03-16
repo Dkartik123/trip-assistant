@@ -72,10 +72,10 @@ jobs:
         env:
           # Dummy values for build (no runtime needed)
           DATABASE_URL: postgresql://x:x@localhost:5432/x
-          NEXTAUTH_SECRET: build-secret-placeholder
+          NEXTAUTH_SECRET: build-secret-placeholder-long-enough
           TELEGRAM_BOT_TOKEN: fake-token
-          ANTHROPIC_API_KEY: sk-ant-fake
-          OPENAI_API_KEY: sk-fake
+          GEMINI_API_KEY: AIzaSyFake-key-for-ci-build
+          OPENAI_API_KEY: sk-fake-key-for-ci-build
 
   # ─── Deploy (only on push to main) ─────────────────────
   deploy:
