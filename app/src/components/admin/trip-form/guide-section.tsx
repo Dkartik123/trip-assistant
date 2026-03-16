@@ -37,9 +37,7 @@ export function GuideSection({ guides, setGuides }: GuideSectionProps) {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() =>
-              setGuides((prev) => [...prev, { ...emptyGuide }])
-            }
+            onClick={() => setGuides((prev) => [...prev, { ...emptyGuide }])}
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Добавить
           </Button>
@@ -58,54 +56,64 @@ export function GuideSection({ guides, setGuides }: GuideSectionProps) {
       ) : (
         <SortableList
           ids={guides.map((_, i) => `guide-${i}`)}
-          onReorder={(from, to) => setGuides((prev) => arrayMove(prev, from, to))}
+          onReorder={(from, to) =>
+            setGuides((prev) => arrayMove(prev, from, to))
+          }
         >
           {guides.map((guide, idx) => (
             <SortableCard
               key={`guide-${idx}`}
               id={`guide-${idx}`}
               title={`Гид ${idx + 1}`}
-              subtitle={[guide.guideName, guide.guidePhone].filter(Boolean).join(" · ") || undefined}
+              subtitle={
+                [guide.guideName, guide.guidePhone]
+                  .filter(Boolean)
+                  .join(" · ") || undefined
+              }
               contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
               actions={
                 <>
                   <AiFillDialog
                     category="guide"
                     compact
-                    onExtracted={(d) => applyToCard(setGuides, idx, "guides", d)}
+                    onExtracted={(d) =>
+                      applyToCard(setGuides, idx, "guides", d)
+                    }
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => setGuides((prev) => prev.filter((_, i) => i !== idx))}
+                    onClick={() =>
+                      setGuides((prev) => prev.filter((_, i) => i !== idx))
+                    }
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </>
               }
             >
-                <div className="space-y-2">
-                  <Label>Имя гида</Label>
-                  <Input
-                    placeholder="Мехмет Йылмаз"
-                    value={guide.guideName}
-                    onChange={(e) =>
-                      updateItem(setGuides, idx, "guideName", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Телефон гида</Label>
-                  <Input
-                    placeholder="+90 532 123 45 67"
-                    value={guide.guidePhone}
-                    onChange={(e) =>
-                      updateItem(setGuides, idx, "guidePhone", e.target.value)
-                    }
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>Имя гида</Label>
+                <Input
+                  placeholder="Мехмет Йылмаз"
+                  value={guide.guideName}
+                  onChange={(e) =>
+                    updateItem(setGuides, idx, "guideName", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Телефон гида</Label>
+                <Input
+                  placeholder="+90 532 123 45 67"
+                  value={guide.guidePhone}
+                  onChange={(e) =>
+                    updateItem(setGuides, idx, "guidePhone", e.target.value)
+                  }
+                />
+              </div>
             </SortableCard>
           ))}
         </SortableList>

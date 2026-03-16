@@ -52,7 +52,8 @@ export async function handleSupportCommand(ctx: Context): Promise<void> {
   if (!chatId) return;
 
   try {
-    const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+    const isGroup =
+      ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
     const result = await resolveTripForChat(chatId, isGroup);
 
     if (!result) {
@@ -121,7 +122,8 @@ export async function handleSupportMessage(ctx: Context): Promise<void> {
   if (!chatId || !userText) return;
 
   try {
-    const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+    const isGroup =
+      ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
     const result = await resolveTripForChat(chatId, isGroup);
     if (!result) return;
 

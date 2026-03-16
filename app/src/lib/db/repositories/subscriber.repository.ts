@@ -96,8 +96,6 @@ export const subscriberRepository = {
 
   /** Delete all subscribers for a trip */
   async deleteByTripId(tripId: string): Promise<void> {
-    await db
-      .delete(tripSubscribers)
-      .where(eq(tripSubscribers.tripId, tripId));
+    await db.delete(tripSubscribers).where(eq(tripSubscribers.tripId, tripId));
   },
 };

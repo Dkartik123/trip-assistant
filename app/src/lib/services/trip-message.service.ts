@@ -34,7 +34,11 @@ function i(text: string): string {
 }
 
 /** Emit a keyed line only if value is truthy */
-function kv(emoji: string, label: string, value: string | null | undefined): string {
+function kv(
+  emoji: string,
+  label: string,
+  value: string | null | undefined,
+): string {
   if (!value?.trim()) return "";
   return `${emoji} ${b(label)}: ${esc(value)}`;
 }
@@ -101,7 +105,10 @@ function fmtDateTimeFull(raw: string | null | undefined): string {
 }
 
 /** Format date + time together */
-function fmtDateTime(date: string | null | undefined, time: string | null | undefined): string {
+function fmtDateTime(
+  date: string | null | undefined,
+  time: string | null | undefined,
+): string {
   const d = fmtDate(date);
   const t = time?.trim() || "";
   if (d && t) return `${d}, ${t}`;
@@ -116,7 +123,8 @@ const SUB_DIVIDER = "──────────";
 function formatPassenger(p: PassengerItem, idx: number): string {
   const parts: string[] = [];
   const name = p.name || `Passenger ${idx + 1}`;
-  const typeLabel = p.type === "child" ? "👦" : p.type === "infant" ? "👶" : "🧑";
+  const typeLabel =
+    p.type === "child" ? "👦" : p.type === "infant" ? "👶" : "🧑";
   let main = `   ${typeLabel} ${esc(name)}`;
   if (p.dateOfBirth) main += ` (${esc(p.dateOfBirth)})`;
   parts.push(main);
@@ -140,31 +148,48 @@ function formatFlightItem(f: FlightItem, idx: number): string {
 
     // Build route: don't repeat station if same as city
     const depParts = [f.departureCity];
-    if (f.departureStation && f.departureStation.toLowerCase() !== f.departureCity?.toLowerCase()) {
+    if (
+      f.departureStation &&
+      f.departureStation.toLowerCase() !== f.departureCity?.toLowerCase()
+    ) {
       depParts.push(`(${f.departureStation})`);
     }
     const arrParts = [f.arrivalCity];
-    if (f.arrivalStation && f.arrivalStation.toLowerCase() !== f.arrivalCity?.toLowerCase()) {
+    if (
+      f.arrivalStation &&
+      f.arrivalStation.toLowerCase() !== f.arrivalCity?.toLowerCase()
+    ) {
       arrParts.push(`(${f.arrivalStation})`);
     }
     const dep = depParts.filter(Boolean).join(" ");
     const arr = arrParts.filter(Boolean).join(" ");
     if (dep || arr) lines.push(`🚉 ${esc(dep || "?")} → ${esc(arr || "?")}`);
 
-    if (f.flightDate) lines.push(kv("📅", "Departure", fmtDateTimeFull(f.flightDate)));
-    if (f.arrivalDate) lines.push(kv("🏁", "Arrival", fmtDateTimeFull(f.arrivalDate)));
+    if (f.flightDate)
+      lines.push(kv("📅", "Departure", fmtDateTimeFull(f.flightDate)));
+    if (f.arrivalDate)
+      lines.push(kv("🏁", "Arrival", fmtDateTimeFull(f.arrivalDate)));
     lines.push(kv("💺", "Seat", f.seat));
     lines.push(kv("🎫", "Class", f.carriageClass));
   } else {
     const num = f.flightNumber || `${idx + 1}`;
     lines.push(`✈️ ${b(`Flight ${esc(num)}`)}`);
 
-    const dep = [f.departureCity, f.departureAirport ? `(${f.departureAirport})` : ""].filter(Boolean).join(" ");
-    const arr = [f.arrivalCity, f.arrivalAirport ? `(${f.arrivalAirport})` : ""].filter(Boolean).join(" ");
+    const dep = [
+      f.departureCity,
+      f.departureAirport ? `(${f.departureAirport})` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const arr = [f.arrivalCity, f.arrivalAirport ? `(${f.arrivalAirport})` : ""]
+      .filter(Boolean)
+      .join(" ");
     if (dep || arr) lines.push(`🛫 ${esc(dep || "?")} → ${esc(arr || "?")}`);
 
-    if (f.flightDate) lines.push(kv("📅", "Departure", fmtDateTimeFull(f.flightDate)));
-    if (f.arrivalDate) lines.push(kv("🛬", "Arrival", fmtDateTimeFull(f.arrivalDate)));
+    if (f.flightDate)
+      lines.push(kv("📅", "Departure", fmtDateTimeFull(f.flightDate)));
+    if (f.arrivalDate)
+      lines.push(kv("🛬", "Arrival", fmtDateTimeFull(f.arrivalDate)));
     if (f.gate) lines.push(kv("🚪", "Gate", f.gate));
   }
 
@@ -189,7 +214,9 @@ function formatHotelItem(h: HotelItem, idx: number): string {
     lines.push(`📅 ${esc(checkin || "?")} → ${esc(checkout || "?")}`);
   }
   if (h.checkinTime || h.checkoutTime) {
-    lines.push(`⏰ In: ${esc(h.checkinTime || "—")} / Out: ${esc(h.checkoutTime || "—")}`);
+    lines.push(
+      `⏰ In: ${esc(h.checkinTime || "—")} / Out: ${esc(h.checkoutTime || "—")}`,
+    );
   }
 
   lines.push(kv("🛏️", "Room", h.roomType));
@@ -242,14 +269,18 @@ function formatTransferItem(t: TransferItem, idx: number): string {
     const toPart = to ? mapsLink(to) : "?";
     lines.push(`📍 ${fromPart} → ${toPart}`);
   }
-  if (t.date || t.time) lines.push(`📅 ${esc(fmtDateTime(t.date, t.time) || "N/A")}`);
+  if (t.date || t.time)
+    lines.push(`📅 ${esc(fmtDateTime(t.date, t.time) || "N/A")}`);
   lines.push(kv("💰", "Price", t.price));
   lines.push(kv("📋", "Confirmation", t.confirmationNumber));
 
   // Transfer-specific
   if (t.type === "transfer" || !t.type) {
     lines.push(kv("📞", "Driver", t.transferDriverPhone));
-    if (t.transferMeetingPoint) lines.push(`📍 <b>Meeting point</b>: ${mapsLink(t.transferMeetingPoint)}`);
+    if (t.transferMeetingPoint)
+      lines.push(
+        `📍 <b>Meeting point</b>: ${mapsLink(t.transferMeetingPoint)}`,
+      );
   }
 
   // Rental-specific
@@ -257,14 +288,21 @@ function formatTransferItem(t: TransferItem, idx: number): string {
     lines.push(kv("🏢", "Company", t.rentalCompany));
     lines.push(kv("🚗", "Car", t.carModel));
     if (t.pickupLocation || t.pickupDate) {
-      lines.push(`   📤 ${b("Pickup")}: ${mapsLink(t.pickupLocation) || "?"} — ${esc(fmtDateTime(t.pickupDate, t.pickupTime))}`);
+      lines.push(
+        `   📤 ${b("Pickup")}: ${mapsLink(t.pickupLocation) || "?"} — ${esc(fmtDateTime(t.pickupDate, t.pickupTime))}`,
+      );
     }
     if (t.dropoffLocation || t.dropoffDate) {
-      lines.push(`   📥 ${b("Drop-off")}: ${mapsLink(t.dropoffLocation) || "?"} — ${esc(fmtDateTime(t.dropoffDate, t.dropoffTime))}`);
+      lines.push(
+        `   📥 ${b("Drop-off")}: ${mapsLink(t.dropoffLocation) || "?"} — ${esc(fmtDateTime(t.dropoffDate, t.dropoffTime))}`,
+      );
     }
     if (t.rentalInsuranceType || t.rentalInsuranceInfo) {
-      lines.push(`   🛡️ ${b("Insurance")}: ${esc([t.rentalInsuranceType, t.rentalInsuranceInfo].filter(Boolean).join(" — "))}`);
-      if (t.rentalInsurancePhone) lines.push(`   📞 ${esc(t.rentalInsurancePhone)}`);
+      lines.push(
+        `   🛡️ ${b("Insurance")}: ${esc([t.rentalInsuranceType, t.rentalInsuranceInfo].filter(Boolean).join(" — "))}`,
+      );
+      if (t.rentalInsurancePhone)
+        lines.push(`   📞 ${esc(t.rentalInsurancePhone)}`);
     }
   }
 
@@ -331,13 +369,20 @@ export const tripMessageService = {
     // Flights & Trains
     const flights = asFlights(trip.flights);
     if (flights.length > 0) {
-      const hasTrains = flights.some(f => f.type === "train");
-      const hasPlanes = flights.some(f => f.type !== "train");
+      const hasTrains = flights.some((f) => f.type === "train");
+      const hasPlanes = flights.some((f) => f.type !== "train");
       let flightHeader = "✈️";
       let flightTitle = "FLIGHTS";
-      if (hasTrains && hasPlanes) { flightHeader = "✈️🚆"; flightTitle = "FLIGHTS & TRAINS"; }
-      else if (hasTrains) { flightHeader = "🚆"; flightTitle = "TRAINS"; }
-      const flightLines = [`\n${flightHeader} ${b(flightTitle)}\n${SUB_DIVIDER}`];
+      if (hasTrains && hasPlanes) {
+        flightHeader = "✈️🚆";
+        flightTitle = "FLIGHTS & TRAINS";
+      } else if (hasTrains) {
+        flightHeader = "🚆";
+        flightTitle = "TRAINS";
+      }
+      const flightLines = [
+        `\n${flightHeader} ${b(flightTitle)}\n${SUB_DIVIDER}`,
+      ];
       flights.forEach((f, idx) => {
         if (idx > 0) flightLines.push("");
         flightLines.push(formatFlightItem(f, idx));
@@ -392,7 +437,9 @@ export const tripMessageService = {
     // Attractions
     const attractions = asAttractions(trip.attractions);
     if (attractions.length > 0) {
-      const attrLines = [`\n🎯 ${b("ACTIVITIES & ATTRACTIONS")}\n${SUB_DIVIDER}`];
+      const attrLines = [
+        `\n🎯 ${b("ACTIVITIES & ATTRACTIONS")}\n${SUB_DIVIDER}`,
+      ];
       attractions.forEach((a, idx) => {
         if (idx > 0) attrLines.push("");
         attrLines.push(formatAttractionItem(a, idx));
@@ -410,7 +457,9 @@ export const tripMessageService = {
 
     // If nothing filled yet
     if (sections.length <= 1) {
-      sections.push(`\n${i("No trip details yet. Your manager will add them soon!")}`);
+      sections.push(
+        `\n${i("No trip details yet. Your manager will add them soon!")}`,
+      );
     }
 
     // Split into messages if > 4096 chars
@@ -421,12 +470,17 @@ export const tripMessageService = {
   formatFlights(trip: Trip): string {
     const flights = asFlights(trip.flights);
     if (flights.length === 0) return "✈️ No flight details available yet.";
-    const hasTrains = flights.some(f => f.type === "train");
-    const hasPlanes = flights.some(f => f.type !== "train");
+    const hasTrains = flights.some((f) => f.type === "train");
+    const hasPlanes = flights.some((f) => f.type !== "train");
     let hdr = "✈️";
     let title = "FLIGHTS";
-    if (hasTrains && hasPlanes) { hdr = "✈️🚆"; title = "FLIGHTS & TRAINS"; }
-    else if (hasTrains) { hdr = "🚆"; title = "TRAINS"; }
+    if (hasTrains && hasPlanes) {
+      hdr = "✈️🚆";
+      title = "FLIGHTS & TRAINS";
+    } else if (hasTrains) {
+      hdr = "🚆";
+      title = "TRAINS";
+    }
     const lines = [`${hdr} ${b(title)}\n${SUB_DIVIDER}`];
     flights.forEach((f, idx) => {
       if (idx > 0) lines.push("");
@@ -474,7 +528,8 @@ export const tripMessageService = {
   /** Insurance section only */
   formatInsurances(trip: Trip): string {
     const insurances = asInsurances(trip.insurances);
-    if (insurances.length === 0) return "🛡️ No insurance details available yet.";
+    if (insurances.length === 0)
+      return "🛡️ No insurance details available yet.";
     const lines = [`🛡️ ${b("INSURANCE")}\n${SUB_DIVIDER}`];
     insurances.forEach((ins, idx) => {
       if (idx > 0) lines.push("");
@@ -539,11 +594,17 @@ export const tripMessageService = {
     // Flights & Trains
     const flights = asFlights(newTrip.flights);
     if (changed(oldTrip.flights, newTrip.flights) && flights.length > 0) {
-      const hasTrains = flights.some(f => f.type === "train");
-      const hasPlanes = flights.some(f => f.type !== "train");
-      let hdr = "✈️"; let title = "FLIGHTS";
-      if (hasTrains && hasPlanes) { hdr = "✈️🚆"; title = "FLIGHTS & TRAINS"; }
-      else if (hasTrains) { hdr = "🚆"; title = "TRAINS"; }
+      const hasTrains = flights.some((f) => f.type === "train");
+      const hasPlanes = flights.some((f) => f.type !== "train");
+      let hdr = "✈️";
+      let title = "FLIGHTS";
+      if (hasTrains && hasPlanes) {
+        hdr = "✈️🚆";
+        title = "FLIGHTS & TRAINS";
+      } else if (hasTrains) {
+        hdr = "🚆";
+        title = "TRAINS";
+      }
       const lines = [`\n${hdr} ${b(title)}`];
       flights.forEach((f, idx) => {
         if (idx > 0) lines.push("");
@@ -587,7 +648,10 @@ export const tripMessageService = {
 
     // Insurances
     const insurances = asInsurances(newTrip.insurances);
-    if (changed(oldTrip.insurances, newTrip.insurances) && insurances.length > 0) {
+    if (
+      changed(oldTrip.insurances, newTrip.insurances) &&
+      insurances.length > 0
+    ) {
       const lines = [`\n🛡️ ${b("INSURANCE")}`];
       insurances.forEach((ins, idx) => {
         if (idx > 0) lines.push("");
@@ -598,7 +662,10 @@ export const tripMessageService = {
 
     // Attractions
     const attractions = asAttractions(newTrip.attractions);
-    if (changed(oldTrip.attractions, newTrip.attractions) && attractions.length > 0) {
+    if (
+      changed(oldTrip.attractions, newTrip.attractions) &&
+      attractions.length > 0
+    ) {
       const lines = [`\n🎯 ${b("ACTIVITIES & ATTRACTIONS")}`];
       attractions.forEach((a, idx) => {
         if (idx > 0) lines.push("");
@@ -725,7 +792,10 @@ async function aiTranslate(text: string, targetLang: string): Promise<string> {
  * Translate an array of Telegram HTML messages to the client's language.
  * Skips translation if lang is falsy.
  */
-export async function translateParts(parts: string[], lang: string | null | undefined): Promise<string[]> {
+export async function translateParts(
+  parts: string[],
+  lang: string | null | undefined,
+): Promise<string[]> {
   if (!lang) return parts;
   return Promise.all(parts.map((p) => aiTranslate(p, lang)));
 }
@@ -734,7 +804,10 @@ export async function translateParts(parts: string[], lang: string | null | unde
  * Translate a single Telegram HTML message to the client's language.
  * Skips translation if lang is falsy.
  */
-export async function translateMessage(text: string, lang: string | null | undefined): Promise<string> {
+export async function translateMessage(
+  text: string,
+  lang: string | null | undefined,
+): Promise<string> {
   if (!lang) return text;
   return aiTranslate(text, lang);
 }
@@ -800,7 +873,8 @@ export async function summarizeTripForClient(trip: Trip): Promise<Trip> {
     const h = asHotels(clone.hotels);
     const withCancellation = await Promise.all(
       h.map(async (hotel) => {
-        if (!hotel.cancellationPolicy || hotel.cancellationPolicy.length < 100) return hotel;
+        if (!hotel.cancellationPolicy || hotel.cancellationPolicy.length < 100)
+          return hotel;
         const summary = await aiSummarize(hotel.cancellationPolicy);
         return { ...hotel, cancellationPolicy: summary };
       }),

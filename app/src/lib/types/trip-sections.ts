@@ -17,16 +17,16 @@ export interface FlightItem {
   type: RouteType;
 
   // ── Common ──
-  flightDate: string;          // departure datetime YYYY-MM-DDTHH:mm
+  flightDate: string; // departure datetime YYYY-MM-DDTHH:mm
   departureCity: string;
   arrivalCity: string;
-  arrivalDate: string;         // arrival datetime  YYYY-MM-DDTHH:mm
+  arrivalDate: string; // arrival datetime  YYYY-MM-DDTHH:mm
   passengers: PassengerItem[];
 
   // ── Flight-specific ──
   flightNumber: string;
-  departureAirport: string;    // IATA
-  arrivalAirport: string;      // IATA
+  departureAirport: string; // IATA
+  arrivalAirport: string; // IATA
   gate: string;
 
   // ── Train-specific ──
@@ -34,7 +34,7 @@ export interface FlightItem {
   departureStation: string;
   arrivalStation: string;
   seat: string;
-  carriageClass: string;       // "1st" | "2nd" | "business"
+  carriageClass: string; // "1st" | "2nd" | "business"
 }
 
 export interface HotelItem {
@@ -69,8 +69,8 @@ export interface TransferItem {
 
   // ── Common ──
   transferInfo: string;
-  date: string;           // YYYY-MM-DD
-  time: string;           // HH:mm
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
   fromLocation: string;
   toLocation: string;
   price: string;
@@ -86,14 +86,13 @@ export interface TransferItem {
   carModel: string;
   pickupLocation: string;
   dropoffLocation: string;
-  pickupDate: string;     // YYYY-MM-DD
-  pickupTime: string;     // HH:mm
-  dropoffDate: string;    // YYYY-MM-DD
-  dropoffTime: string;    // HH:mm
-  rentalInsuranceType: string;    // e.g. "CDW", "SCDW", "Full"
-  rentalInsuranceInfo: string;    // policy details
+  pickupDate: string; // YYYY-MM-DD
+  pickupTime: string; // HH:mm
+  dropoffDate: string; // YYYY-MM-DD
+  dropoffTime: string; // HH:mm
+  rentalInsuranceType: string; // e.g. "CDW", "SCDW", "Full"
+  rentalInsuranceInfo: string; // policy details
   rentalInsurancePhone: string;
-
 }
 
 export interface InsuranceItem {

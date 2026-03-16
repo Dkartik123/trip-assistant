@@ -377,12 +377,15 @@ export const tripClientsRelations = relations(tripClients, ({ one }) => ({
   }),
 }));
 
-export const tripSubscribersRelations = relations(tripSubscribers, ({ one }) => ({
-  trip: one(trips, {
-    fields: [tripSubscribers.tripId],
-    references: [trips.id],
+export const tripSubscribersRelations = relations(
+  tripSubscribers,
+  ({ one }) => ({
+    trip: one(trips, {
+      fields: [tripSubscribers.tripId],
+      references: [trips.id],
+    }),
   }),
-}));
+);
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   trip: one(trips, {

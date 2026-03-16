@@ -48,7 +48,11 @@ export default async function EditTripPage({
       tripId={id}
       managerId={manager.id}
       agencyId={manager.agencyId}
-      clients={clients.map((c) => ({ id: c.id, name: c.name, language: c.language ?? "en" }))}
+      clients={clients.map((c) => ({
+        id: c.id,
+        name: c.name,
+        language: c.language ?? "en",
+      }))}
     />
   );
 }

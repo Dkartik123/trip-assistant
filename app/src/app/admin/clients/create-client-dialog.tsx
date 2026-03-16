@@ -140,23 +140,38 @@ export function CreateClientDialog({
               endpoint="/api/clients/extract"
               title="AI заполнение клиента"
               description="Вставьте текст с данными клиента (из CRM, переписки, визитки, документа) или загрузите файл — AI автоматически заполнит поля формы."
-              placeholder={"Вставьте текст с информацией о клиенте:\nимя, телефон, email, мессенджеры и т.д."}
+              placeholder={
+                "Вставьте текст с информацией о клиенте:\nимя, телефон, email, мессенджеры и т.д."
+              }
             />
           </div>
 
           {/* Идентификация */}
           <div className="space-y-2">
             <Label>Полное имя *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Имя Фамилия" required />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Имя Фамилия"
+              required
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Имя</Label>
-              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Иван" />
+              <Input
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Иван"
+              />
             </div>
             <div className="space-y-2">
               <Label>Фамилия</Label>
-              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Петров" />
+              <Input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Петров"
+              />
             </div>
           </div>
 
@@ -166,16 +181,29 @@ export function CreateClientDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Телефон</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+7 999 123 45 67" />
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+7 999 123 45 67"
+              />
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="client@example.com" />
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                placeholder="client@example.com"
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>Страна</Label>
-            <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Россия" />
+            <Input
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="Россия"
+            />
           </div>
 
           <Separator />
@@ -184,17 +212,30 @@ export function CreateClientDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Telegram username</Label>
-              <Input value={telegramUsername} onChange={(e) => setTelegramUsername(e.target.value)} placeholder="@username" />
+              <Input
+                value={telegramUsername}
+                onChange={(e) => setTelegramUsername(e.target.value)}
+                placeholder="@username"
+              />
             </div>
             <div className="space-y-2">
               <Label>WhatsApp телефон</Label>
-              <Input value={whatsappPhone} onChange={(e) => setWhatsappPhone(e.target.value)} placeholder="+79991234567" />
+              <Input
+                value={whatsappPhone}
+                onChange={(e) => setWhatsappPhone(e.target.value)}
+                placeholder="+79991234567"
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>Предпочтительный канал</Label>
-            <Select value={preferredMessenger} onValueChange={(v) => setPreferredMessenger(v ?? "_none")}>
-              <SelectTrigger><SelectValue placeholder="Не выбрано" /></SelectTrigger>
+            <Select
+              value={preferredMessenger}
+              onValueChange={(v) => setPreferredMessenger(v ?? "_none")}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Не выбрано" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="_none">Не выбрано</SelectItem>
                 <SelectItem value="telegram">Telegram</SelectItem>
@@ -211,22 +252,36 @@ export function CreateClientDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Язык</Label>
-              <Select value={language} onValueChange={(v) => v && setLanguage(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={language}
+                onValueChange={(v) => v && setLanguage(v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {LANGUAGES.map((l) => (
-                    <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                    <SelectItem key={l.value} value={l.value}>
+                      {l.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Часовой пояс</Label>
-              <Select value={timezone} onValueChange={(v) => v && setTimezone(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={timezone}
+                onValueChange={(v) => v && setTimezone(v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {TIMEZONES.map((tz) => (
-                    <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
+                    <SelectItem key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -239,16 +294,29 @@ export function CreateClientDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Источник</Label>
-              <Input value={source} onChange={(e) => setSource(e.target.value)} placeholder="Реферал, сайт..." />
+              <Input
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                placeholder="Реферал, сайт..."
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>Заметки</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="VIP клиент, предпочтения..." rows={3} />
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="VIP клиент, предпочтения..."
+              rows={3}
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Отмена
             </Button>
             <Button type="submit">Создать</Button>

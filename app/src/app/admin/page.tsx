@@ -33,13 +33,22 @@ function formatDate(dateStr: Date | null) {
   });
 }
 
-const statusMap: Record<
-  string,
-  { label: string; className: string }
-> = {
-  draft: { label: "Черновик", className: "bg-amber-100 text-amber-700 border-transparent dark:bg-amber-900/30 dark:text-amber-400" },
-  active: { label: "Активна", className: "bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-900/30 dark:text-emerald-400" },
-  completed: { label: "Завершена", className: "bg-sky-100 text-sky-700 border-transparent dark:bg-sky-900/30 dark:text-sky-400" },
+const statusMap: Record<string, { label: string; className: string }> = {
+  draft: {
+    label: "Черновик",
+    className:
+      "bg-amber-100 text-amber-700 border-transparent dark:bg-amber-900/30 dark:text-amber-400",
+  },
+  active: {
+    label: "Активна",
+    className:
+      "bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-900/30 dark:text-emerald-400",
+  },
+  completed: {
+    label: "Завершена",
+    className:
+      "bg-sky-100 text-sky-700 border-transparent dark:bg-sky-900/30 dark:text-sky-400",
+  },
 };
 
 export default async function AdminDashboardPage() {
@@ -116,7 +125,9 @@ export default async function AdminDashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
+              <div className="text-3xl font-bold tracking-tight">
+                {stat.value}
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {stat.description}
               </p>
@@ -165,7 +176,10 @@ export default async function AdminDashboardPage() {
                         {formatDate(trip.flightDate)}
                       </span>
                       <Badge
-                        className={statusMap[trip.status]?.className ?? "bg-muted text-muted-foreground border-transparent"}
+                        className={
+                          statusMap[trip.status]?.className ??
+                          "bg-muted text-muted-foreground border-transparent"
+                        }
                       >
                         {statusMap[trip.status]?.label ?? trip.status}
                       </Badge>

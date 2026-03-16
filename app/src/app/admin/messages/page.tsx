@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, User, Bot, Headset, Plane, ArrowRight } from "lucide-react";
+import {
+  MessageSquare,
+  User,
+  Bot,
+  Headset,
+  Plane,
+  ArrowRight,
+} from "lucide-react";
 import { getCurrentManager } from "@/lib/admin-session";
 import { messageRepository } from "@/lib/db/repositories";
 

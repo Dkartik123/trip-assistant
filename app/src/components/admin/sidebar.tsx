@@ -33,8 +33,12 @@ function SidebarContent({ pathname }: { pathname: string }) {
           <Plane className="h-4 w-4 text-sidebar-primary" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-sidebar-foreground leading-tight">Trip Assistant</p>
-          <p className="text-[11px] text-sidebar-foreground/50 leading-tight">Travel Management</p>
+          <p className="text-sm font-semibold text-sidebar-foreground leading-tight">
+            Trip Assistant
+          </p>
+          <p className="text-[11px] text-sidebar-foreground/50 leading-tight">
+            Travel Management
+          </p>
         </div>
       </div>
 
@@ -55,7 +59,12 @@ function SidebarContent({ pathname }: { pathname: string }) {
                   : "text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground border-l-2 border-transparent",
               )}
             >
-              <item.icon className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? "text-sidebar-primary" : "")} />
+              <item.icon
+                className={cn(
+                  "h-4 w-4 shrink-0 transition-colors",
+                  isActive ? "text-sidebar-primary" : "",
+                )}
+              />
               {item.name}
             </Link>
           );
@@ -84,7 +93,15 @@ export function AdminSidebar() {
     <>
       {/* Mobile sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger render={<Button variant="ghost" size="icon" className="fixed top-3 left-3 z-40 md:hidden" />}>
+        <SheetTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="fixed top-3 left-3 z-40 md:hidden"
+            />
+          }
+        >
           <Menu className="h-5 w-5" />
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">

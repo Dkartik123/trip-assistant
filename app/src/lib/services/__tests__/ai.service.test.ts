@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Trip } from "@/lib/db/repositories";
 
 /**
  * AI service unit test — verifies prompt building and response handling.
@@ -66,6 +67,7 @@ describe("AI Service", () => {
       managerPhone: "+372 5551234",
       flights: [
         {
+          type: "flight" as const,
           flightDate: "2026-05-12T07:45",
           flightNumber: "AY123",
           departureCity: "Tallinn",
@@ -74,6 +76,12 @@ describe("AI Service", () => {
           arrivalAirport: "FCO",
           arrivalDate: "2026-05-12T10:30",
           gate: "A12",
+          passengers: [],
+          trainNumber: "",
+          departureStation: "",
+          arrivalStation: "",
+          seat: "",
+          carriageClass: "",
         },
       ],
       hotels: [
@@ -81,16 +89,46 @@ describe("AI Service", () => {
           hotelName: "Hotel Roma",
           hotelAddress: "Via Roma 1",
           hotelPhone: "+39 06 1234567",
+          checkinDate: "",
+          checkoutDate: "",
           checkinTime: "14:00",
           checkoutTime: "11:00",
+          roomType: "",
+          mealPlan: "",
+          confirmationNumber: "",
+          pin: "",
+          price: "",
+          cancellationPolicy: "",
+          specialRequests: "",
+          propertyMessages: [],
+          guestName: "",
         },
       ],
       guides: [{ guideName: "Marco", guidePhone: "+39 333 1234567" }],
       transfers: [
         {
+          type: "transfer" as const,
           transferInfo: "Airport pickup included",
           transferDriverPhone: "+39 333 7654321",
           transferMeetingPoint: "Arrivals hall, exit B",
+          date: "",
+          time: "",
+          fromLocation: "",
+          toLocation: "",
+          price: "",
+          confirmationNumber: "",
+          notes: "",
+          rentalCompany: "",
+          carModel: "",
+          pickupLocation: "",
+          dropoffLocation: "",
+          pickupDate: "",
+          pickupTime: "",
+          dropoffDate: "",
+          dropoffTime: "",
+          rentalInsuranceType: "",
+          rentalInsuranceInfo: "",
+          rentalInsurancePhone: "",
         },
       ],
       insurances: [
@@ -99,11 +137,12 @@ describe("AI Service", () => {
           insurancePhone: "+372 6101010",
         },
       ],
+      attractions: [],
       inviteToken: "test-token",
       notes: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
+    } as unknown as Trip;
 
     const result = await generateResponse(mockTrip, [], "When is my flight?");
 
@@ -144,11 +183,12 @@ describe("AI Service", () => {
       guides: [],
       transfers: [],
       insurances: [],
+      attractions: [],
       inviteToken: "token-2",
       notes: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
+    } as unknown as Trip;
 
     const result = await generateResponse(mockTrip, [], "Hello");
     expect(typeof result).toBe("string");

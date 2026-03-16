@@ -165,7 +165,9 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
               endpoint="/api/clients/extract"
               title="AI заполнение клиента"
               description="Вставьте текст с данными клиента (из CRM, переписки, визитки, документа) или загрузите файл — AI автоматически заполнит поля формы."
-              placeholder={"Вставьте текст с информацией о клиенте:\nимя, телефон, email, мессенджеры и т.д."}
+              placeholder={
+                "Вставьте текст с информацией о клиенте:\nимя, телефон, email, мессенджеры и т.д."
+              }
             />
           </div>
 
@@ -176,16 +178,28 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             </h3>
             <div className="space-y-2">
               <Label>Полное имя *</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Имя</Label>
-                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Иван" />
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Иван"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Фамилия</Label>
-                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Петров" />
+                <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Петров"
+                />
               </div>
             </div>
           </div>
@@ -200,16 +214,29 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Телефон</Label>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+7 999 123 45 67" />
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+7 999 123 45 67"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="client@example.com" />
+                <Input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="client@example.com"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Страна</Label>
-              <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Россия" />
+              <Input
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Россия"
+              />
             </div>
           </div>
 
@@ -223,22 +250,36 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Язык общения</Label>
-                <Select value={language} onValueChange={(v) => v && setLanguage(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={language}
+                  onValueChange={(v) => v && setLanguage(v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {LANGUAGES.map((l) => (
-                      <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                      <SelectItem key={l.value} value={l.value}>
+                        {l.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Часовой пояс</Label>
-                <Select value={timezone} onValueChange={(v) => v && setTimezone(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={timezone}
+                  onValueChange={(v) => v && setTimezone(v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {TIMEZONES.map((tz) => (
-                      <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -256,17 +297,30 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Telegram username</Label>
-                <Input value={telegramUsername} onChange={(e) => setTelegramUsername(e.target.value)} placeholder="@username" />
+                <Input
+                  value={telegramUsername}
+                  onChange={(e) => setTelegramUsername(e.target.value)}
+                  placeholder="@username"
+                />
               </div>
               <div className="space-y-2">
                 <Label>WhatsApp телефон</Label>
-                <Input value={whatsappPhone} onChange={(e) => setWhatsappPhone(e.target.value)} placeholder="+79991234567" />
+                <Input
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                  placeholder="+79991234567"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Предпочтительный канал</Label>
-              <Select value={preferredMessenger} onValueChange={(v) => setPreferredMessenger(v ?? "_none")}>
-                <SelectTrigger><SelectValue placeholder="Не выбрано" /></SelectTrigger>
+              <Select
+                value={preferredMessenger}
+                onValueChange={(v) => setPreferredMessenger(v ?? "_none")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Не выбрано" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">Не выбрано</SelectItem>
                   <SelectItem value="telegram">Telegram</SelectItem>
@@ -288,8 +342,13 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Статус клиента</Label>
-                <Select value={clientStatus} onValueChange={(v) => v && setClientStatus(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={clientStatus}
+                  onValueChange={(v) => v && setClientStatus(v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Активен</SelectItem>
                     <SelectItem value="archived">Архив</SelectItem>
@@ -299,12 +358,21 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
               </div>
               <div className="space-y-2">
                 <Label>Источник</Label>
-                <Input value={source} onChange={(e) => setSource(e.target.value)} placeholder="Реферал, сайт..." />
+                <Input
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  placeholder="Реферал, сайт..."
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Заметки</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="VIP клиент, предпочтения..." rows={3} />
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="VIP клиент, предпочтения..."
+                rows={3}
+              />
             </div>
           </div>
 
@@ -317,13 +385,22 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             </h3>
             <div className="space-y-2">
               <Label>Предпочтительное время для связи</Label>
-              <Input value={preferredContactTime} onChange={(e) => setPreferredContactTime(e.target.value)} placeholder="10:00 – 20:00" />
+              <Input
+                value={preferredContactTime}
+                onChange={(e) => setPreferredContactTime(e.target.value)}
+                placeholder="10:00 – 20:00"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Голосовые сообщения</Label>
-                <Select value={voiceEnabled} onValueChange={(v) => v && setVoiceEnabled(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={voiceEnabled}
+                  onValueChange={(v) => v && setVoiceEnabled(v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="true">Включены</SelectItem>
                     <SelectItem value="false">Отключены</SelectItem>
@@ -332,8 +409,13 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
               </div>
               <div className="space-y-2">
                 <Label>Уведомления</Label>
-                <Select value={notificationEnabled} onValueChange={(v) => v && setNotificationEnabled(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={notificationEnabled}
+                  onValueChange={(v) => v && setNotificationEnabled(v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="true">Включены</SelectItem>
                     <SelectItem value="false">Отключены</SelectItem>
@@ -353,11 +435,19 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Имя</Label>
-                <Input value={emergencyContactName} onChange={(e) => setEmergencyContactName(e.target.value)} placeholder="Мария Петрова" />
+                <Input
+                  value={emergencyContactName}
+                  onChange={(e) => setEmergencyContactName(e.target.value)}
+                  placeholder="Мария Петрова"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Телефон</Label>
-                <Input value={emergencyContactPhone} onChange={(e) => setEmergencyContactPhone(e.target.value)} placeholder="+7 999 000 00 00" />
+                <Input
+                  value={emergencyContactPhone}
+                  onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                  placeholder="+7 999 000 00 00"
+                />
               </div>
             </div>
           </div>
@@ -371,12 +461,32 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
             </h3>
             <div className="space-y-2">
               {[
-                { label: "Маркетинговые рассылки", checked: consentMarketing, onChange: setConsentMarketing },
-                { label: "Сообщения в мессенджерах", checked: consentMessaging, onChange: setConsentMessaging },
-                { label: "Обработка персональных данных", checked: consentPrivacy, onChange: setConsentPrivacy },
+                {
+                  label: "Маркетинговые рассылки",
+                  checked: consentMarketing,
+                  onChange: setConsentMarketing,
+                },
+                {
+                  label: "Сообщения в мессенджерах",
+                  checked: consentMessaging,
+                  onChange: setConsentMessaging,
+                },
+                {
+                  label: "Обработка персональных данных",
+                  checked: consentPrivacy,
+                  onChange: setConsentPrivacy,
+                },
               ].map(({ label, checked, onChange }) => (
-                <label key={label} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 rounded border-input" />
+                <label
+                  key={label}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => onChange(e.target.checked)}
+                    className="h-4 w-4 rounded border-input"
+                  />
                   <span className="text-sm">{label}</span>
                 </label>
               ))}
@@ -384,7 +494,11 @@ export function EditClientDialog({ client, onSaved }: EditClientDialogProps) {
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Отмена
             </Button>
             <Button type="submit" disabled={saving}>

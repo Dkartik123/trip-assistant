@@ -14,9 +14,7 @@ import type {
   NoteItem,
   ExtractedTripData,
 } from "@/lib/types/trip-sections";
-import {
-  emptyFlight,
-} from "@/lib/types/trip-sections";
+import { emptyFlight } from "@/lib/types/trip-sections";
 import { parseNotes, serializeNotes } from "@/lib/utils/notes";
 import { hasValues } from "@/lib/utils/form-helpers";
 
@@ -151,9 +149,7 @@ export function useTripForm(opts: {
   const router = useRouter();
 
   // ─── localStorage cache key ──────────────────────────
-  const cacheKey = isEdit
-    ? `trip-form-edit-${tripId}`
-    : "trip-form-new";
+  const cacheKey = isEdit ? `trip-form-edit-${tripId}` : "trip-form-new";
 
   /** Read cached form data (only on first render) */
   function readCache(): Partial<TripFormInitialData> | null {
@@ -167,8 +163,16 @@ export function useTripForm(opts: {
   }
 
   /** Merge: use cache if available, else initialData */
-  function init<T>(cacheVal: T | undefined, serverVal: T | undefined, fallback: T): T {
-    return cacheVal !== undefined ? cacheVal : (serverVal !== undefined ? serverVal : fallback);
+  function init<T>(
+    cacheVal: T | undefined,
+    serverVal: T | undefined,
+    fallback: T,
+  ): T {
+    return cacheVal !== undefined
+      ? cacheVal
+      : serverVal !== undefined
+        ? serverVal
+        : fallback;
   }
 
   // On first render, check if there's a cached version newer than server data
@@ -264,8 +268,22 @@ export function useTripForm(opts: {
     };
     try {
       localStorage.setItem(cacheKey, JSON.stringify(snapshot));
-    } catch { /* ignore quota errors */ }
-  }, [clientId, status, managerPhone, flights, hotels, guides, transfers, insurances, attractions, noteCards, cacheKey]);
+    } catch {
+      /* ignore quota errors */
+    }
+  }, [
+    clientId,
+    status,
+    managerPhone,
+    flights,
+    hotels,
+    guides,
+    transfers,
+    insurances,
+    attractions,
+    noteCards,
+    cacheKey,
+  ]);
 
   // Debounce: save 500ms after last change
   useEffect(() => {
@@ -278,7 +296,11 @@ export function useTripForm(opts: {
 
   /** Clear cache (called after successful save) */
   function clearCache() {
-    try { localStorage.removeItem(cacheKey); } catch { /* noop */ }
+    try {
+      localStorage.removeItem(cacheKey);
+    } catch {
+      /* noop */
+    }
   }
 
   // ─── Global AI fill ──────────────────────────────────
@@ -287,10 +309,8 @@ export function useTripForm(opts: {
     const data = raw as ExtractedTripData;
     if (data.flights?.length)
       setFlights((prev) => mergeIncomingFlights(prev, data.flights!));
-    if (data.hotels?.length)
-      setHotels((prev) => [...prev, ...data.hotels!]);
-    if (data.guides?.length)
-      setGuides((prev) => [...prev, ...data.guides!]);
+    if (data.hotels?.length) setHotels((prev) => [...prev, ...data.hotels!]);
+    if (data.guides?.length) setGuides((prev) => [...prev, ...data.guides!]);
     if (data.transfers?.length)
       setTransfers((prev) => [...prev, ...data.transfers!]);
     if (data.insurances?.length)
@@ -354,7 +374,9 @@ export function useTripForm(opts: {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ language: clientLanguage }),
-        }).catch(() => {/* non-critical */});
+        }).catch(() => {
+          /* non-critical */
+        });
       }
 
       clearCache();
@@ -362,9 +384,7 @@ export function useTripForm(opts: {
       router.push(`/admin/trips/${savedTrip.id}`);
       router.refresh();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Не удалось сохранить",
-      );
+      toast.error(err instanceof Error ? err.message : "Не удалось сохранить");
     } finally {
       setSaving(false);
     }

@@ -16,7 +16,11 @@ import {
 import { Plane, Plus, X, TrainFront } from "lucide-react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { AiFillDialog } from "@/components/admin/ai-fill-dialog";
-import type { FlightItem, RouteType, ExtractedTripData } from "@/lib/types/trip-sections";
+import type {
+  FlightItem,
+  RouteType,
+  ExtractedTripData,
+} from "@/lib/types/trip-sections";
 import { emptyFlight, emptyPassenger } from "@/lib/types/trip-sections";
 import { updateItem } from "@/lib/utils/form-helpers";
 import { applyToCard, mergeIncomingFlights } from "./use-trip-form";
@@ -25,10 +29,13 @@ import { SortableCard } from "./sortable-card";
 
 function flightSubtitle(f: FlightItem): string {
   const isTrain = (f.type ?? "flight") === "train";
-  const dep = f.departureCity || (isTrain ? f.departureStation : f.departureAirport);
+  const dep =
+    f.departureCity || (isTrain ? f.departureStation : f.departureAirport);
   const arr = f.arrivalCity || (isTrain ? f.arrivalStation : f.arrivalAirport);
   const route = dep && arr ? `${dep} → ${arr}` : dep || arr;
-  const dDate = f.flightDate ? `${f.flightDate.slice(8, 10)}.${f.flightDate.slice(5, 7)}` : "";
+  const dDate = f.flightDate
+    ? `${f.flightDate.slice(8, 10)}.${f.flightDate.slice(5, 7)}`
+    : "";
   const dTime = f.flightDate?.slice(11, 16) ?? "";
   const aTime = f.arrivalDate?.slice(11, 16) ?? "";
   const times = [dTime, aTime].filter(Boolean).join(" → ");
@@ -36,7 +43,9 @@ function flightSubtitle(f: FlightItem): string {
   return [route, when].filter(Boolean).join(" · ");
 }
 function sortFlights(arr: FlightItem[]) {
-  return [...arr].sort((a, b) => (a.flightDate ?? "").localeCompare(b.flightDate ?? ""));
+  return [...arr].sort((a, b) =>
+    (a.flightDate ?? "").localeCompare(b.flightDate ?? ""),
+  );
 }
 
 interface FlightSectionProps {
@@ -47,7 +56,9 @@ interface FlightSectionProps {
 export function FlightSection({ flights, setFlights }: FlightSectionProps) {
   // Sort by departure date on initial load
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setFlights(prev => sortFlights(prev)); }, []);
+  useEffect(() => {
+    setFlights((prev) => sortFlights(prev));
+  }, []);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -59,16 +70,16 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
             onExtracted={(d) => {
               const arr = (d as ExtractedTripData).flights;
               if (arr?.length)
-                setFlights((prev) => sortFlights(mergeIncomingFlights(prev, arr)));
+                setFlights((prev) =>
+                  sortFlights(mergeIncomingFlights(prev, arr)),
+                );
             }}
           />
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() =>
-              setFlights((prev) => [...prev, { ...emptyFlight }])
-            }
+            onClick={() => setFlights((prev) => [...prev, { ...emptyFlight }])}
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Добавить
           </Button>
@@ -87,7 +98,9 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
       ) : (
         <SortableList
           ids={flights.map((_, i) => `flight-${i}`)}
-          onReorder={(from, to) => setFlights((prev) => arrayMove(prev, from, to))}
+          onReorder={(from, to) =>
+            setFlights((prev) => arrayMove(prev, from, to))
+          }
         >
           {flights.map((flight, idx) => (
             <SortableCard
@@ -99,9 +112,9 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
                     <TrainFront className="h-4 w-4" />
                   ) : (
                     <Plane className="h-4 w-4" />
-                  )}
-                  {" "}
-                  {(flight.type ?? "flight") === "train" ? "Поезд" : "Рейс"} {idx + 1}
+                  )}{" "}
+                  {(flight.type ?? "flight") === "train" ? "Поезд" : "Рейс"}{" "}
+                  {idx + 1}
                 </>
               }
               subtitle={flightSubtitle(flight) || undefined}
@@ -111,289 +124,278 @@ export function FlightSection({ flights, setFlights }: FlightSectionProps) {
                   <AiFillDialog
                     category="flight"
                     compact
-                    onExtracted={(d) => applyToCard(setFlights, idx, "flights", d)}
+                    onExtracted={(d) =>
+                      applyToCard(setFlights, idx, "flights", d)
+                    }
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => setFlights((prev) => prev.filter((_, i) => i !== idx))}
+                    onClick={() =>
+                      setFlights((prev) => prev.filter((_, i) => i !== idx))
+                    }
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </>
               }
             >
-                {/* Type selector */}
-                <div className="space-y-2 sm:col-span-2 lg:col-span-3">
-                  <Label>Тип маршрута</Label>
-                  <Select
-                    value={(flight.type ?? "flight") as string}
-                    onValueChange={(v) =>
-                      v && updateItem(setFlights, idx, "type", v)
+              {/* Type selector */}
+              <div className="space-y-2 sm:col-span-2 lg:col-span-3">
+                <Label>Тип маршрута</Label>
+                <Select
+                  value={(flight.type ?? "flight") as string}
+                  onValueChange={(v) =>
+                    v && updateItem(setFlights, idx, "type", v)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flight">✈️ Авиарейс</SelectItem>
+                    <SelectItem value="train">🚆 Поезд</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Дата и время отправления</Label>
+                <Input
+                  type="datetime-local"
+                  value={flight.flightDate}
+                  onChange={(e) =>
+                    updateItem(setFlights, idx, "flightDate", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Flight-specific fields */}
+              {((flight.type ?? "flight") as RouteType) === "flight" && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Номер рейса</Label>
+                    <Input
+                      placeholder="SU2134"
+                      value={flight.flightNumber}
+                      onChange={(e) =>
+                        updateItem(
+                          setFlights,
+                          idx,
+                          "flightNumber",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Гейт</Label>
+                    <Input
+                      placeholder="A12"
+                      value={flight.gate}
+                      onChange={(e) =>
+                        updateItem(setFlights, idx, "gate", e.target.value)
+                      }
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Train-specific fields */}
+              {((flight.type ?? "flight") as RouteType) === "train" && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Номер поезда</Label>
+                    <Input
+                      placeholder="ICE 374"
+                      value={flight.trainNumber ?? ""}
+                      onChange={(e) =>
+                        updateItem(
+                          setFlights,
+                          idx,
+                          "trainNumber",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Место / Вагон</Label>
+                    <Input
+                      placeholder="Вагон 5, Место 23"
+                      value={flight.seat ?? ""}
+                      onChange={(e) =>
+                        updateItem(setFlights, idx, "seat", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Класс</Label>
+                    <Input
+                      placeholder="2nd, 1st, business"
+                      value={flight.carriageClass ?? ""}
+                      onChange={(e) =>
+                        updateItem(
+                          setFlights,
+                          idx,
+                          "carriageClass",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-2">
+                <Label>Город отправления</Label>
+                <Input
+                  placeholder="Москва"
+                  value={flight.departureCity}
+                  onChange={(e) =>
+                    updateItem(setFlights, idx, "departureCity", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Airport fields for flights */}
+              {((flight.type ?? "flight") as RouteType) === "flight" && (
+                <div className="space-y-2">
+                  <Label>Аэропорт вылета</Label>
+                  <Input
+                    placeholder="SVO"
+                    value={flight.departureAirport}
+                    onChange={(e) =>
+                      updateItem(
+                        setFlights,
+                        idx,
+                        "departureAirport",
+                        e.target.value,
+                      )
                     }
+                  />
+                </div>
+              )}
+
+              {/* Station fields for trains */}
+              {((flight.type ?? "flight") as RouteType) === "train" && (
+                <div className="space-y-2">
+                  <Label>Станция отправления</Label>
+                  <Input
+                    placeholder="Firenze S.M.N."
+                    value={flight.departureStation ?? ""}
+                    onChange={(e) =>
+                      updateItem(
+                        setFlights,
+                        idx,
+                        "departureStation",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+              )}
+
+              <Separator className="col-span-full" />
+              <div className="space-y-2">
+                <Label>Город прибытия</Label>
+                <Input
+                  placeholder="Анталья"
+                  value={flight.arrivalCity}
+                  onChange={(e) =>
+                    updateItem(setFlights, idx, "arrivalCity", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Airport for flights */}
+              {((flight.type ?? "flight") as RouteType) === "flight" && (
+                <div className="space-y-2">
+                  <Label>Аэропорт прибытия</Label>
+                  <Input
+                    placeholder="AYT"
+                    value={flight.arrivalAirport}
+                    onChange={(e) =>
+                      updateItem(
+                        setFlights,
+                        idx,
+                        "arrivalAirport",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+              )}
+
+              {/* Station for trains */}
+              {((flight.type ?? "flight") as RouteType) === "train" && (
+                <div className="space-y-2">
+                  <Label>Станция прибытия</Label>
+                  <Input
+                    placeholder="Venezia S. Lucia"
+                    value={flight.arrivalStation ?? ""}
+                    onChange={(e) =>
+                      updateItem(
+                        setFlights,
+                        idx,
+                        "arrivalStation",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Дата и время прибытия</Label>
+                <Input
+                  type="datetime-local"
+                  value={flight.arrivalDate}
+                  onChange={(e) =>
+                    updateItem(setFlights, idx, "arrivalDate", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Passengers */}
+              <Separator className="col-span-full" />
+              <div className="col-span-full space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">Пассажиры</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setFlights((prev) => {
+                        const next = [...prev];
+                        next[idx] = {
+                          ...next[idx],
+                          passengers: [
+                            ...(next[idx].passengers ?? []),
+                            { ...emptyPassenger },
+                          ],
+                        };
+                        return next;
+                      });
+                    }}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="flight">✈️ Авиарейс</SelectItem>
-                      <SelectItem value="train">🚆 Поезд</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Plus className="mr-1 h-3 w-3" /> Пассажир
+                  </Button>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Дата и время отправления</Label>
-                  <Input
-                    type="datetime-local"
-                    value={flight.flightDate}
-                    onChange={(e) =>
-                      updateItem(setFlights, idx, "flightDate", e.target.value)
-                    }
+                {(flight.passengers ?? []).map((pax, pIdx) => (
+                  <PassengerRow
+                    key={pIdx}
+                    pax={pax}
+                    pIdx={pIdx}
+                    flightIdx={idx}
+                    setFlights={setFlights}
                   />
-                </div>
-
-                {/* Flight-specific fields */}
-                {((flight.type ?? "flight") as RouteType) === "flight" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Номер рейса</Label>
-                      <Input
-                        placeholder="SU2134"
-                        value={flight.flightNumber}
-                        onChange={(e) =>
-                          updateItem(
-                            setFlights,
-                            idx,
-                            "flightNumber",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Гейт</Label>
-                      <Input
-                        placeholder="A12"
-                        value={flight.gate}
-                        onChange={(e) =>
-                          updateItem(setFlights, idx, "gate", e.target.value)
-                        }
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Train-specific fields */}
-                {((flight.type ?? "flight") as RouteType) === "train" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Номер поезда</Label>
-                      <Input
-                        placeholder="ICE 374"
-                        value={flight.trainNumber ?? ""}
-                        onChange={(e) =>
-                          updateItem(
-                            setFlights,
-                            idx,
-                            "trainNumber",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Место / Вагон</Label>
-                      <Input
-                        placeholder="Вагон 5, Место 23"
-                        value={flight.seat ?? ""}
-                        onChange={(e) =>
-                          updateItem(setFlights, idx, "seat", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Класс</Label>
-                      <Input
-                        placeholder="2nd, 1st, business"
-                        value={flight.carriageClass ?? ""}
-                        onChange={(e) =>
-                          updateItem(
-                            setFlights,
-                            idx,
-                            "carriageClass",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Город отправления</Label>
-                  <Input
-                    placeholder="Москва"
-                    value={flight.departureCity}
-                    onChange={(e) =>
-                      updateItem(
-                        setFlights,
-                        idx,
-                        "departureCity",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-
-                {/* Airport fields for flights */}
-                {((flight.type ?? "flight") as RouteType) === "flight" && (
-                  <div className="space-y-2">
-                    <Label>Аэропорт вылета</Label>
-                    <Input
-                      placeholder="SVO"
-                      value={flight.departureAirport}
-                      onChange={(e) =>
-                        updateItem(
-                          setFlights,
-                          idx,
-                          "departureAirport",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                )}
-
-                {/* Station fields for trains */}
-                {((flight.type ?? "flight") as RouteType) === "train" && (
-                  <div className="space-y-2">
-                    <Label>Станция отправления</Label>
-                    <Input
-                      placeholder="Firenze S.M.N."
-                      value={flight.departureStation ?? ""}
-                      onChange={(e) =>
-                        updateItem(
-                          setFlights,
-                          idx,
-                          "departureStation",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                )}
-
-                <Separator className="col-span-full" />
-                <div className="space-y-2">
-                  <Label>Город прибытия</Label>
-                  <Input
-                    placeholder="Анталья"
-                    value={flight.arrivalCity}
-                    onChange={(e) =>
-                      updateItem(
-                        setFlights,
-                        idx,
-                        "arrivalCity",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-
-                {/* Airport for flights */}
-                {((flight.type ?? "flight") as RouteType) === "flight" && (
-                  <div className="space-y-2">
-                    <Label>Аэропорт прибытия</Label>
-                    <Input
-                      placeholder="AYT"
-                      value={flight.arrivalAirport}
-                      onChange={(e) =>
-                        updateItem(
-                          setFlights,
-                          idx,
-                          "arrivalAirport",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                )}
-
-                {/* Station for trains */}
-                {((flight.type ?? "flight") as RouteType) === "train" && (
-                  <div className="space-y-2">
-                    <Label>Станция прибытия</Label>
-                    <Input
-                      placeholder="Venezia S. Lucia"
-                      value={flight.arrivalStation ?? ""}
-                      onChange={(e) =>
-                        updateItem(
-                          setFlights,
-                          idx,
-                          "arrivalStation",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Дата и время прибытия</Label>
-                  <Input
-                    type="datetime-local"
-                    value={flight.arrivalDate}
-                    onChange={(e) =>
-                      updateItem(
-                        setFlights,
-                        idx,
-                        "arrivalDate",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-
-                {/* Passengers */}
-                <Separator className="col-span-full" />
-                <div className="col-span-full space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold">Пассажиры</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        setFlights((prev) => {
-                          const next = [...prev];
-                          next[idx] = {
-                            ...next[idx],
-                            passengers: [
-                              ...(next[idx].passengers ?? []),
-                              { ...emptyPassenger },
-                            ],
-                          };
-                          return next;
-                        });
-                      }}
-                    >
-                      <Plus className="mr-1 h-3 w-3" /> Пассажир
-                    </Button>
-                  </div>
-                  {(flight.passengers ?? []).map((pax, pIdx) => (
-                    <PassengerRow
-                      key={pIdx}
-                      pax={pax}
-                      pIdx={pIdx}
-                      flightIdx={idx}
-                      setFlights={setFlights}
-                    />
-                  ))}
-                </div>
+                ))}
+              </div>
             </SortableCard>
           ))}
         </SortableList>

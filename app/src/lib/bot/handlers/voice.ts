@@ -109,7 +109,9 @@ export async function handleVoice(ctx: Context): Promise<void> {
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    await ctx.reply(`🎤 "${safeTranscription}"\n\n${aiResponse}`, { parse_mode: "HTML" });
+    await ctx.reply(`🎤 "${safeTranscription}"\n\n${aiResponse}`, {
+      parse_mode: "HTML",
+    });
   } catch (error) {
     log.error({ error, chatId }, "Failed to handle voice message");
     await ctx.reply("⚠️ Could not process voice message. Try typing instead.");

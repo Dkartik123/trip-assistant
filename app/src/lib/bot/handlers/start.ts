@@ -1,7 +1,16 @@
 import { Context } from "grammy";
 import { createLogger } from "@/lib/logger";
-import { tripRepository, clientRepository, subscriberRepository } from "@/lib/db/repositories";
-import { tripMessageService, summarizeTripForClient, translateParts, translateMessage } from "@/lib/services/trip-message.service";
+import {
+  tripRepository,
+  clientRepository,
+  subscriberRepository,
+} from "@/lib/db/repositories";
+import {
+  tripMessageService,
+  summarizeTripForClient,
+  translateParts,
+  translateMessage,
+} from "@/lib/services/trip-message.service";
 
 const log = createLogger("bot:start");
 
@@ -49,12 +58,15 @@ export async function handleStart(ctx: Context): Promise<void> {
     // Find the client associated with this trip
     const client = await clientRepository.findById(trip.clientId);
     if (!client) {
-      await ctx.reply("❌ Client not found. Please contact your travel agency.");
+      await ctx.reply(
+        "❌ Client not found. Please contact your travel agency.",
+      );
       return;
     }
 
     // Link Telegram chat to primary client (backward-compat — only if this is the primary client's chat)
-    const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+    const isGroup =
+      ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
     const isPrimaryClient = !client.telegramChatId && !client.telegramGroupId;
 
     if (isPrimaryClient) {
@@ -76,10 +88,13 @@ export async function handleStart(ctx: Context): Promise<void> {
       language: client.language ?? "en",
     });
 
-    const isNewSubscriber = new Date().getTime() - new Date(subscriber.joinedAt).getTime() < 5000;
+    const isNewSubscriber =
+      new Date().getTime() - new Date(subscriber.joinedAt).getTime() < 5000;
     log.info(
       { tripId: trip.id, chatId, name: subscriberName, isNew: isNewSubscriber },
-      isNewSubscriber ? "New subscriber joined trip" : "Existing subscriber reconnected",
+      isNewSubscriber
+        ? "New subscriber joined trip"
+        : "Existing subscriber reconnected",
     );
 
     const lang = subscriber.language ?? client.language;
@@ -115,7 +130,11 @@ export async function handleStart(ctx: Context): Promise<void> {
         }
       } catch (error) {
         log.error({ error, chatId }, "Failed to send AI trip summary");
-        await ctx.reply("⚠️ Could not load trip details. Please use /trip to view your trip, or contact your travel agency.").catch(() => {});
+        await ctx
+          .reply(
+            "⚠️ Could not load trip details. Please use /trip to view your trip, or contact your travel agency.",
+          )
+          .catch(() => {});
       }
     })();
     // Handler returns here → grammY sends 200 to Telegram immediately

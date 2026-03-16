@@ -13,9 +13,7 @@ import {
 
 const log = createLogger("api:clients:extract");
 
-function sanitizeClient(
-  raw: Record<string, unknown>,
-): Record<string, string> {
+function sanitizeClient(raw: Record<string, unknown>): Record<string, string> {
   const clean: Record<string, string> = {};
   for (const field of CLIENT_ALLOWED_FIELDS) {
     const val = raw[field];
@@ -80,7 +78,12 @@ export async function POST(request: NextRequest) {
     let clientsRaw: Record<string, unknown>[] = [];
     if (Array.isArray(parsed.clients) && parsed.clients.length > 0) {
       clientsRaw = parsed.clients;
-    } else if (parsed.name || parsed.firstName || parsed.email || parsed.phone) {
+    } else if (
+      parsed.name ||
+      parsed.firstName ||
+      parsed.email ||
+      parsed.phone
+    ) {
       clientsRaw = [parsed];
     }
 

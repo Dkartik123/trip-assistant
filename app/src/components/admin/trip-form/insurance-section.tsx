@@ -65,64 +65,74 @@ export function InsuranceSection({
       ) : (
         <SortableList
           ids={insurances.map((_, i) => `ins-${i}`)}
-          onReorder={(from, to) => setInsurances((prev) => arrayMove(prev, from, to))}
+          onReorder={(from, to) =>
+            setInsurances((prev) => arrayMove(prev, from, to))
+          }
         >
           {insurances.map((ins, idx) => (
             <SortableCard
               key={`ins-${idx}`}
               id={`ins-${idx}`}
               title={`Страховка ${idx + 1}`}
-              subtitle={[ins.insuranceInfo.slice(0, 50), ins.insurancePhone].filter(Boolean).join(" · ") || undefined}
+              subtitle={
+                [ins.insuranceInfo.slice(0, 50), ins.insurancePhone]
+                  .filter(Boolean)
+                  .join(" · ") || undefined
+              }
               contentClassName="grid gap-4 grid-cols-1 sm:grid-cols-2"
               actions={
                 <>
                   <AiFillDialog
                     category="insurance"
                     compact
-                    onExtracted={(d) => applyToCard(setInsurances, idx, "insurances", d)}
+                    onExtracted={(d) =>
+                      applyToCard(setInsurances, idx, "insurances", d)
+                    }
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => setInsurances((prev) => prev.filter((_, i) => i !== idx))}
+                    onClick={() =>
+                      setInsurances((prev) => prev.filter((_, i) => i !== idx))
+                    }
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </>
               }
             >
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Информация о страховке</Label>
-                  <Textarea
-                    placeholder="Полис #12345, покрытие до $50,000"
-                    value={ins.insuranceInfo}
-                    onChange={(e) =>
-                      updateItem(
-                        setInsurances,
-                        idx,
-                        "insuranceInfo",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Телефон страховой</Label>
-                  <Input
-                    placeholder="+7 800 123 45 67"
-                    value={ins.insurancePhone}
-                    onChange={(e) =>
-                      updateItem(
-                        setInsurances,
-                        idx,
-                        "insurancePhone",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Информация о страховке</Label>
+                <Textarea
+                  placeholder="Полис #12345, покрытие до $50,000"
+                  value={ins.insuranceInfo}
+                  onChange={(e) =>
+                    updateItem(
+                      setInsurances,
+                      idx,
+                      "insuranceInfo",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Телефон страховой</Label>
+                <Input
+                  placeholder="+7 800 123 45 67"
+                  value={ins.insurancePhone}
+                  onChange={(e) =>
+                    updateItem(
+                      setInsurances,
+                      idx,
+                      "insurancePhone",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
             </SortableCard>
           ))}
         </SortableList>

@@ -19,9 +19,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Настройки</h1>
-        <p className="text-muted-foreground">
-          Конфигурация приложения
-        </p>
+        <p className="text-muted-foreground">Конфигурация приложения</p>
       </div>
 
       {/* Telegram Bot */}
@@ -72,22 +70,28 @@ export default function SettingsPage() {
             <Settings className="h-5 w-5" />
             AI-модели
           </CardTitle>
-          <CardDescription>
-            Конфигурация Claude моделей
-          </CardDescription>
+          <CardDescription>Конфигурация Claude моделей</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Основная модель</Label>
-              <Input value="claude-haiku-4-5-20251001" readOnly className="font-mono text-sm" />
+              <Input
+                value="claude-haiku-4-5-20251001"
+                readOnly
+                className="font-mono text-sm"
+              />
               <p className="text-xs text-muted-foreground">
                 Быстрые ответы, низкая стоимость
               </p>
             </div>
             <div className="space-y-2">
               <Label>Fallback модель</Label>
-              <Input value="claude-sonnet-4-6-20250514" readOnly className="font-mono text-sm" />
+              <Input
+                value="claude-sonnet-4-6-20250514"
+                readOnly
+                className="font-mono text-sm"
+              />
               <p className="text-xs text-muted-foreground">
                 Используется при ошибках основной
               </p>
@@ -103,9 +107,7 @@ export default function SettingsPage() {
             <Globe className="h-5 w-5" />
             WhatsApp
           </CardTitle>
-          <CardDescription>
-            Интеграция с WhatsApp через Twilio
-          </CardDescription>
+          <CardDescription>Интеграция с WhatsApp через Twilio</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
@@ -113,7 +115,8 @@ export default function SettingsPage() {
             <Badge variant="outline">Не настроен</Badge>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Для подключения WhatsApp настройте TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN и TWILIO_WHATSAPP_NUMBER в переменных окружения.
+            Для подключения WhatsApp настройте TWILIO_ACCOUNT_SID,
+            TWILIO_AUTH_TOKEN и TWILIO_WHATSAPP_NUMBER в переменных окружения.
           </p>
         </CardContent>
       </Card>

@@ -45,9 +45,7 @@ export function ClientsListClient({
   );
 
   function handleClientUpdated(updated: ClientRow) {
-    setClients((prev) =>
-      prev.map((c) => (c.id === updated.id ? updated : c)),
-    );
+    setClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
   }
 
   return (
@@ -144,7 +142,10 @@ export function ClientsListClient({
                             </Badge>
                           )}
                           {client.preferredMessenger && (
-                            <Badge variant="outline" className="text-xs capitalize">
+                            <Badge
+                              variant="outline"
+                              className="text-xs capitalize"
+                            >
                               ★ {client.preferredMessenger}
                             </Badge>
                           )}
@@ -157,10 +158,7 @@ export function ClientsListClient({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={statusCfg.variant}
-                          className="text-xs"
-                        >
+                        <Badge variant={statusCfg.variant} className="text-xs">
                           {statusCfg.label}
                         </Badge>
                       </TableCell>

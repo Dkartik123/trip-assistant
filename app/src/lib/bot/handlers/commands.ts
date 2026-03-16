@@ -1,7 +1,18 @@
 import { Context } from "grammy";
 import { createLogger } from "@/lib/logger";
-import { clientRepository, tripRepository, subscriberRepository, type Trip, type Client } from "@/lib/db/repositories";
-import { tripMessageService, summarizeTripForClient, translateParts, translateMessage } from "@/lib/services/trip-message.service";
+import {
+  clientRepository,
+  tripRepository,
+  subscriberRepository,
+  type Trip,
+  type Client,
+} from "@/lib/db/repositories";
+import {
+  tripMessageService,
+  summarizeTripForClient,
+  translateParts,
+  translateMessage,
+} from "@/lib/services/trip-message.service";
 
 const log = createLogger("bot:commands");
 
@@ -10,7 +21,9 @@ const log = createLogger("bot:commands");
  * First checks if this chatId belongs to a registered client (legacy flow).
  * Then falls back to checking trip_subscribers (multi-user flow).
  */
-async function resolveTrip(ctx: Context): Promise<{ trip: Trip; language: string } | null> {
+async function resolveTrip(
+  ctx: Context,
+): Promise<{ trip: Trip; language: string } | null> {
   const chatId = ctx.chat?.id?.toString();
   if (!chatId) return null;
 
@@ -64,7 +77,9 @@ export async function handleTripCommand(ctx: Context): Promise<void> {
         }
       } catch (error) {
         log.error({ error }, "Failed /trip background work");
-        await ctx.reply("⚠️ Could not load trip info. Please try again.").catch(() => {});
+        await ctx
+          .reply("⚠️ Could not load trip info. Please try again.")
+          .catch(() => {});
       }
     })();
   } catch (error) {

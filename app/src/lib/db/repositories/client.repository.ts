@@ -86,9 +86,7 @@ export const clientRepository = {
    * Count trips per client for a given manager.
    * Returns a Map<clientId, count>.
    */
-  async countTripsByManager(
-    managerId: string,
-  ): Promise<Map<string, number>> {
+  async countTripsByManager(managerId: string): Promise<Map<string, number>> {
     const rows = await db
       .select({ clientId: trips.clientId, count: count() })
       .from(trips)

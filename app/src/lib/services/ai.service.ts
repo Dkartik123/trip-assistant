@@ -65,11 +65,24 @@ function formatTransfers(raw: unknown): string {
   if (transfers.length === 0) return "- **Transfers**: N/A";
   return transfers
     .map((t, i) => {
-      const tf = t as TransferItem & { type?: string; fromLocation?: string; toLocation?: string; date?: string; time?: string; price?: string };
-      const typeLabel = tf.type === "rental" ? "Car Rental" : tf.type === "walking" ? "Walking" : "Transfer";
-      const route = tf.fromLocation && tf.toLocation
-        ? `${tf.fromLocation} → ${tf.toLocation}`
-        : tf.fromLocation || tf.toLocation || "N/A";
+      const tf = t as TransferItem & {
+        type?: string;
+        fromLocation?: string;
+        toLocation?: string;
+        date?: string;
+        time?: string;
+        price?: string;
+      };
+      const typeLabel =
+        tf.type === "rental"
+          ? "Car Rental"
+          : tf.type === "walking"
+            ? "Walking"
+            : "Transfer";
+      const route =
+        tf.fromLocation && tf.toLocation
+          ? `${tf.fromLocation} → ${tf.toLocation}`
+          : tf.fromLocation || tf.toLocation || "N/A";
       return `- **${typeLabel} ${i + 1}**: ${tf.transferInfo || typeLabel}\n  Route: ${route}, Date: ${tf.date || "N/A"} ${tf.time || ""}\n  Driver: ${tf.transferDriverPhone || "N/A"}, Meeting: ${tf.transferMeetingPoint || "N/A"}, Price: ${tf.price || "N/A"}`;
     })
     .join("\n");

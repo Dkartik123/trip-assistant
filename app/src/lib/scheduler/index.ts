@@ -25,6 +25,7 @@ export function initScheduler() {
       for (const notification of pending) {
         try {
           // Get trip with client data
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const trip = (notification as any).trip;
           const client = trip?.client;
 
@@ -37,8 +38,7 @@ export function initScheduler() {
             continue;
           }
 
-          const chatId =
-            client.telegramChatId || client.telegramGroupId;
+          const chatId = client.telegramChatId || client.telegramGroupId;
 
           const message =
             notification.content ||
@@ -87,10 +87,8 @@ export function initScheduler() {
 /**
  * Build notification text based on type and trip data.
  */
-function buildNotificationMessage(
-  type: string,
-  trip: any,
-): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildNotificationMessage(type: string, trip: any): string {
   switch (type) {
     case "24h_before":
       return [

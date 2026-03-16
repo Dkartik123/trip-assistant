@@ -19,7 +19,9 @@ async function extractFileText(file: File): Promise<string | NextResponse> {
   }
   if (!ALLOWED_TYPES.has(file.type) && !file.name.endsWith(".pdf")) {
     return NextResponse.json(
-      { error: `Неподдерживаемый формат: "${file.name}". Используйте PDF или текстовый файл` },
+      {
+        error: `Неподдерживаемый формат: "${file.name}". Используйте PDF или текстовый файл`,
+      },
       { status: 400 },
     );
   }
@@ -44,7 +46,8 @@ export async function extractTextFromFormData(
   // Collect all files: supports both "file" (legacy single) and "files" (multi)
   const multiFiles = formData.getAll("files") as File[];
   const singleFile = formData.get("file") as File | null;
-  const allFiles = multiFiles.length > 0 ? multiFiles : singleFile ? [singleFile] : [];
+  const allFiles =
+    multiFiles.length > 0 ? multiFiles : singleFile ? [singleFile] : [];
 
   if (allFiles.length > MAX_TOTAL_FILES) {
     return NextResponse.json(

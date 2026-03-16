@@ -42,10 +42,10 @@ export const authConfig = {
       // ── Protected API routes → 401 JSON ─────────────
       if (pathname.startsWith("/api/")) {
         if (!isLoggedIn) {
-          return new Response(
-            JSON.stringify({ error: "Unauthorized" }),
-            { status: 401, headers: { "Content-Type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
         }
         return true;
       }

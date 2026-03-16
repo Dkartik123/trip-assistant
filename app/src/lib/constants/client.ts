@@ -2,7 +2,10 @@
 
 export const CLIENT_STATUS_LABELS: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
 > = {
   active: { label: "Активен", variant: "default" },
   archived: { label: "Архив", variant: "secondary" },

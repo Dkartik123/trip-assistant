@@ -15,20 +15,17 @@ const WINDOW_MS = 60_000; // 1 minute
 /**
  * Clean up stale entries every 5 minutes to prevent memory leaks.
  */
-setInterval(
-  () => {
-    const now = Date.now();
-    for (const [key, timestamps] of windows.entries()) {
-      const recent = timestamps.filter((t) => now - t < WINDOW_MS);
-      if (recent.length === 0) {
-        windows.delete(key);
-      } else {
-        windows.set(key, recent);
-      }
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamps] of windows.entries()) {
+    const recent = timestamps.filter((t) => now - t < WINDOW_MS);
+    if (recent.length === 0) {
+      windows.delete(key);
+    } else {
+      windows.set(key, recent);
     }
-  },
-  5 * 60_000,
-);
+  }
+}, 5 * 60_000);
 
 export async function rateLimiter(
   ctx: Context,

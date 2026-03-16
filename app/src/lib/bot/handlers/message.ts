@@ -55,8 +55,7 @@ export async function handleMessage(ctx: Context): Promise<void> {
     if (isGroup) {
       const botInfo = ctx.me;
       const isMentioned = userText.includes(`@${botInfo.username}`);
-      const isReply =
-        ctx.message?.reply_to_message?.from?.id === botInfo.id;
+      const isReply = ctx.message?.reply_to_message?.from?.id === botInfo.id;
 
       if (!isMentioned && !isReply) return;
     }
@@ -115,9 +114,14 @@ export async function handleMessage(ctx: Context): Promise<void> {
         `🗺️ ${trip.departureCity ?? "—"} → ${trip.arrivalCity ?? "—"}\n\n` +
         `<i>${userText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</i>`;
       const { getBot } = await import("@/lib/bot");
-      getBot().api.sendMessage(operatorChatId, notifyText, { parse_mode: "HTML" }).catch((err) => {
-        log.warn({ err, operatorChatId }, "Failed to notify operator about client message");
-      });
+      getBot()
+        .api.sendMessage(operatorChatId, notifyText, { parse_mode: "HTML" })
+        .catch((err) => {
+          log.warn(
+            { err, operatorChatId },
+            "Failed to notify operator about client message",
+          );
+        });
     }
   } catch (error) {
     log.error({ error, chatId }, "Failed to handle message");

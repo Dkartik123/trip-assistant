@@ -38,7 +38,9 @@ export function AttractionSection({
   setAttractions,
 }: AttractionSectionProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setAttractions(prev => sortAttractions(prev)); }, []);
+  useEffect(() => {
+    setAttractions((prev) => sortAttractions(prev));
+  }, []);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -49,7 +51,8 @@ export function AttractionSection({
             compact
             onExtracted={(d) => {
               const arr = (d as ExtractedTripData).attractions;
-              if (arr?.length) setAttractions((prev) => sortAttractions([...prev, ...arr]));
+              if (arr?.length)
+                setAttractions((prev) => sortAttractions([...prev, ...arr]));
             }}
           />
           <Button
@@ -77,7 +80,9 @@ export function AttractionSection({
       ) : (
         <SortableList
           ids={attractions.map((_, i) => `attr-${i}`)}
-          onReorder={(from, to) => setAttractions((prev) => arrayMove(prev, from, to))}
+          onReorder={(from, to) =>
+            setAttractions((prev) => arrayMove(prev, from, to))
+          }
         >
           {attractions.map((attr, idx) => (
             <SortableCard
@@ -91,117 +96,116 @@ export function AttractionSection({
                   <AiFillDialog
                     category="attraction"
                     compact
-                    onExtracted={(d) => applyToCard(setAttractions, idx, "attractions", d)}
+                    onExtracted={(d) =>
+                      applyToCard(setAttractions, idx, "attractions", d)
+                    }
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => setAttractions((prev) => prev.filter((_, i) => i !== idx))}
+                    onClick={() =>
+                      setAttractions((prev) => prev.filter((_, i) => i !== idx))
+                    }
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </>
               }
             >
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Название</Label>
-                  <Input
-                    placeholder="Экскурсия по городу"
-                    value={attr.name}
-                    onChange={(e) =>
-                      updateItem(setAttractions, idx, "name", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Описание</Label>
-                  <Textarea
-                    rows={2}
-                    placeholder="Описание мероприятия..."
-                    value={attr.description}
-                    onChange={(e) =>
-                      updateItem(
-                        setAttractions,
-                        idx,
-                        "description",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Дата</Label>
-                  <Input
-                    type="date"
-                    value={attr.date}
-                    onChange={(e) =>
-                      updateItem(setAttractions, idx, "date", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Время</Label>
-                  <Input
-                    placeholder="10:00"
-                    value={attr.time}
-                    onChange={(e) =>
-                      updateItem(setAttractions, idx, "time", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Место</Label>
-                  <Input
-                    placeholder="Старый город"
-                    value={attr.location}
-                    onChange={(e) =>
-                      updateItem(
-                        setAttractions,
-                        idx,
-                        "location",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Цена</Label>
-                  <Input
-                    placeholder="25.00 EUR"
-                    value={attr.price}
-                    onChange={(e) =>
-                      updateItem(setAttractions, idx, "price", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>№ подтверждения</Label>
-                  <Input
-                    placeholder="CONF-123"
-                    value={attr.confirmationNumber}
-                    onChange={(e) =>
-                      updateItem(
-                        setAttractions,
-                        idx,
-                        "confirmationNumber",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Заметки</Label>
-                  <Textarea
-                    rows={2}
-                    placeholder="Дополнительная информация..."
-                    value={attr.notes}
-                    onChange={(e) =>
-                      updateItem(setAttractions, idx, "notes", e.target.value)
-                    }
-                  />
-                </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Название</Label>
+                <Input
+                  placeholder="Экскурсия по городу"
+                  value={attr.name}
+                  onChange={(e) =>
+                    updateItem(setAttractions, idx, "name", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Описание</Label>
+                <Textarea
+                  rows={2}
+                  placeholder="Описание мероприятия..."
+                  value={attr.description}
+                  onChange={(e) =>
+                    updateItem(
+                      setAttractions,
+                      idx,
+                      "description",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Дата</Label>
+                <Input
+                  type="date"
+                  value={attr.date}
+                  onChange={(e) =>
+                    updateItem(setAttractions, idx, "date", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Время</Label>
+                <Input
+                  placeholder="10:00"
+                  value={attr.time}
+                  onChange={(e) =>
+                    updateItem(setAttractions, idx, "time", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Место</Label>
+                <Input
+                  placeholder="Старый город"
+                  value={attr.location}
+                  onChange={(e) =>
+                    updateItem(setAttractions, idx, "location", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Цена</Label>
+                <Input
+                  placeholder="25.00 EUR"
+                  value={attr.price}
+                  onChange={(e) =>
+                    updateItem(setAttractions, idx, "price", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>№ подтверждения</Label>
+                <Input
+                  placeholder="CONF-123"
+                  value={attr.confirmationNumber}
+                  onChange={(e) =>
+                    updateItem(
+                      setAttractions,
+                      idx,
+                      "confirmationNumber",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Заметки</Label>
+                <Textarea
+                  rows={2}
+                  placeholder="Дополнительная информация..."
+                  value={attr.notes}
+                  onChange={(e) =>
+                    updateItem(setAttractions, idx, "notes", e.target.value)
+                  }
+                />
+              </div>
             </SortableCard>
           ))}
         </SortableList>

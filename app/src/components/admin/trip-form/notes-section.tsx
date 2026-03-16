@@ -65,9 +65,7 @@ export function NotesSection({ noteCards, setNoteCards }: NotesSectionProps) {
                     size="icon"
                     className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() =>
-                      setNoteCards((prev) =>
-                        prev.filter((_, i) => i !== idx),
-                      )
+                      setNoteCards((prev) => prev.filter((_, i) => i !== idx))
                     }
                   >
                     <X className="h-3.5 w-3.5" />

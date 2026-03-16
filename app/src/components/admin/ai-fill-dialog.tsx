@@ -21,7 +21,13 @@ const MAX_SIZE_MB = 5;
 
 interface AiFillDialogProps {
   onExtracted: (data: Record<string, unknown>) => void;
-  category?: "flight" | "hotel" | "guide" | "transfer" | "insurance" | "attraction";
+  category?:
+    | "flight"
+    | "hotel"
+    | "guide"
+    | "transfer"
+    | "insurance"
+    | "attraction";
   compact?: boolean;
   endpoint?: string;
   title?: string;
@@ -65,7 +71,12 @@ export function AiFillDialog({
         toast.error(`Файл "${f.name}" больше ${MAX_SIZE_MB} МБ`);
         continue;
       }
-      if (!f.type.includes("pdf") && !f.type.includes("text") && !f.name.endsWith(".pdf") && !f.name.endsWith(".txt")) {
+      if (
+        !f.type.includes("pdf") &&
+        !f.type.includes("text") &&
+        !f.name.endsWith(".pdf") &&
+        !f.name.endsWith(".txt")
+      ) {
         toast.error(`Формат "${f.name}" не поддерживается`);
         continue;
       }
@@ -147,11 +158,23 @@ export function AiFillDialog({
   const hasFiles = files.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) reset();
+      }}
+    >
       <DialogTrigger
         render={
           compact ? (
-            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="AI заполнение" />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              title="AI заполнение"
+            />
           ) : (
             <Button type="button" variant="outline" className="gap-2" />
           )
@@ -183,7 +206,9 @@ export function AiFillDialog({
               ${dragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/40"}`}
           >
             <Upload className="mx-auto mb-2 h-7 w-7 text-muted-foreground" />
-            <p className="text-sm font-medium">Перетащите файлы сюда или нажмите для выбора</p>
+            <p className="text-sm font-medium">
+              Перетащите файлы сюда или нажмите для выбора
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
               PDF, TXT · макс. {MAX_SIZE_MB} МБ на файл · до {MAX_FILES} файлов
             </p>
@@ -201,20 +226,32 @@ export function AiFillDialog({
           {hasFiles && (
             <div className="space-y-1.5">
               {files.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-1.5 text-xs">
+                <div
+                  key={i}
+                  className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-1.5 text-xs"
+                >
                   <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <span className="min-w-0 flex-1 truncate font-medium">{f.name}</span>
-                  <span className="shrink-0 text-muted-foreground">{formatBytes(f.size)}</span>
+                  <span className="min-w-0 flex-1 truncate font-medium">
+                    {f.name}
+                  </span>
+                  <span className="shrink-0 text-muted-foreground">
+                    {formatBytes(f.size)}
+                  </span>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFile(i);
+                    }}
                     className="shrink-0 rounded-sm p-0.5 hover:bg-foreground/10"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               ))}
-              <p className="text-xs text-muted-foreground pl-1">{files.length} файл(ов) · нажмите зону выше чтобы добавить ещё</p>
+              <p className="text-xs text-muted-foreground pl-1">
+                {files.length} файл(ов) · нажмите зону выше чтобы добавить ещё
+              </p>
             </div>
           )}
 
@@ -224,7 +261,9 @@ export function AiFillDialog({
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">или</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                или
+              </span>
             </div>
           </div>
 
@@ -252,12 +291,16 @@ export function AiFillDialog({
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {files.length > 1 ? `Анализирую ${files.length} файлов...` : "Анализирую..."}
+                {files.length > 1
+                  ? `Анализирую ${files.length} файлов...`
+                  : "Анализирую..."}
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                {files.length > 1 ? `Извлечь из ${files.length} файлов` : "Извлечь данные"}
+                {files.length > 1
+                  ? `Извлечь из ${files.length} файлов`
+                  : "Извлечь данные"}
               </>
             )}
           </Button>
@@ -269,6 +312,7 @@ export function AiFillDialog({
 
 function pluralFields(n: number): string {
   if (n % 10 === 1 && n % 100 !== 11) return "поле";
-  if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return "поля";
+  if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20))
+    return "поля";
   return "полей";
 }

@@ -41,10 +41,7 @@ export const tripService = {
     return trip;
   },
 
-  async updateTrip(
-    id: string,
-    data: Partial<NewTrip>,
-  ): Promise<Trip> {
+  async updateTrip(id: string, data: Partial<NewTrip>): Promise<Trip> {
     const oldTrip = await tripRepository.findById(id);
     const trip = await tripRepository.update(id, data);
 
@@ -75,7 +72,10 @@ export const tripService = {
     // Build diff message — only changed sections
     const parts = tripMessageService.formatChangedSections(oldTrip, newTrip);
     if (!parts) {
-      log.debug({ tripId: newTrip.id }, "No section changes detected, skipping notification");
+      log.debug(
+        { tripId: newTrip.id },
+        "No section changes detected, skipping notification",
+      );
       return;
     }
 
@@ -95,10 +95,15 @@ export const tripService = {
       try {
         const translated = await translateParts(parts, sub.language);
         for (const part of translated) {
-          await bot.api.sendMessage(sub.telegramChatId, part, { parse_mode: "HTML" });
+          await bot.api.sendMessage(sub.telegramChatId, part, {
+            parse_mode: "HTML",
+          });
         }
       } catch (err) {
-        log.warn({ err, chatId: sub.telegramChatId }, "Failed to notify subscriber");
+        log.warn(
+          { err, chatId: sub.telegramChatId },
+          "Failed to notify subscriber",
+        );
       }
     }
 
@@ -139,9 +144,7 @@ export const tripService = {
     return tripRepository.findByInviteToken(token);
   },
 
-  async getActiveTripForClient(
-    clientId: string,
-  ): Promise<Trip | undefined> {
+  async getActiveTripForClient(clientId: string): Promise<Trip | undefined> {
     return tripRepository.findByClientId(clientId);
   },
 

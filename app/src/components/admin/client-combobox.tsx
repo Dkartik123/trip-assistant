@@ -97,7 +97,11 @@ export function ClientCombobox({
       }
 
       const { data: created } = await res.json();
-      const newClient: ClientOption = { id: created.id, name: created.name, language: created.language ?? "en" };
+      const newClient: ClientOption = {
+        id: created.id,
+        name: created.name,
+        language: created.language ?? "en",
+      };
 
       onClientCreated(newClient);
       onValueChange(created.id);

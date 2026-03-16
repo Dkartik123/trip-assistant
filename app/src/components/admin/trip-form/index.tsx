@@ -90,7 +90,10 @@ export function TripForm({
   });
 
   return (
-    <form onSubmit={form.handleSubmit} className="min-w-0 space-y-4 sm:space-y-6">
+    <form
+      onSubmit={form.handleSubmit}
+      className="min-w-0 space-y-4 sm:space-y-6"
+    >
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -144,9 +147,7 @@ export function TripForm({
                 clientId: undefined as unknown as string,
               }));
             }}
-            onClientCreated={(c) =>
-              form.setClientList((prev) => [...prev, c])
-            }
+            onClientCreated={(c) => form.setClientList((prev) => [...prev, c])}
             agencyId={agencyId}
             error={form.errors.clientId}
           />
@@ -238,10 +239,7 @@ export function TripForm({
         </TabsList>
 
         <TabsContent value="flight">
-          <FlightSection
-            flights={form.flights}
-            setFlights={form.setFlights}
-          />
+          <FlightSection flights={form.flights} setFlights={form.setFlights} />
         </TabsContent>
         <TabsContent value="hotel">
           <HotelSection hotels={form.hotels} setHotels={form.setHotels} />

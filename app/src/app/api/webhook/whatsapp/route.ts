@@ -25,9 +25,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: "received" });
   } catch (error) {
     log.error({ error }, "WhatsApp webhook error");
-    return NextResponse.json(
-      { status: "error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ status: "error" }, { status: 500 });
   }
 }

@@ -30,10 +30,7 @@ export const notificationRepository = {
   },
 
   async create(data: NewNotification): Promise<Notification> {
-    const [created] = await db
-      .insert(notifications)
-      .values(data)
-      .returning();
+    const [created] = await db.insert(notifications).values(data).returning();
     return created;
   },
 

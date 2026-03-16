@@ -50,9 +50,15 @@ export default function LoginPage() {
             className="flex h-10 w-10 items-center justify-center rounded-xl"
             style={{ background: "oklch(0.65 0.18 252 / 0.2)" }}
           >
-            <Plane className="h-5 w-5" style={{ color: "oklch(0.65 0.18 252)" }} />
+            <Plane
+              className="h-5 w-5"
+              style={{ color: "oklch(0.65 0.18 252)" }}
+            />
           </div>
-          <span className="text-lg font-bold" style={{ color: "oklch(0.95 0.01 252)" }}>
+          <span
+            className="text-lg font-bold"
+            style={{ color: "oklch(0.95 0.01 252)" }}
+          >
             Trip Assistant
           </span>
         </div>
@@ -64,10 +70,13 @@ export default function LoginPage() {
               className="text-4xl font-bold leading-tight"
               style={{ color: "oklch(0.95 0.01 252)" }}
             >
-              Управляйте поездками,<br />создавайте впечатления
+              Управляйте поездками,
+              <br />
+              создавайте впечатления
             </p>
             <p className="text-base" style={{ color: "oklch(0.75 0.04 252)" }}>
-              AI-ассистент для турагентств — всё о поездке клиента в одном месте.
+              AI-ассистент для турагентств — всё о поездке клиента в одном
+              месте.
             </p>
           </div>
 
@@ -83,9 +92,15 @@ export default function LoginPage() {
                   className="flex h-6 w-6 items-center justify-center rounded-md shrink-0"
                   style={{ background: "oklch(0.65 0.18 252 / 0.15)" }}
                 >
-                  <Icon className="h-3.5 w-3.5" style={{ color: "oklch(0.65 0.18 252)" }} />
+                  <Icon
+                    className="h-3.5 w-3.5"
+                    style={{ color: "oklch(0.65 0.18 252)" }}
+                  />
                 </div>
-                <span className="text-sm" style={{ color: "oklch(0.80 0.03 252)" }}>
+                <span
+                  className="text-sm"
+                  style={{ color: "oklch(0.80 0.03 252)" }}
+                >
                   {text}
                 </span>
               </div>
@@ -94,7 +109,10 @@ export default function LoginPage() {
         </div>
 
         {/* Footer quote */}
-        <p className="text-xs relative z-10" style={{ color: "oklch(0.55 0.03 252)" }}>
+        <p
+          className="text-xs relative z-10"
+          style={{ color: "oklch(0.55 0.03 252)" }}
+        >
           © 2026 Trip Assistant · AI Travel Management
         </p>
       </div>
@@ -154,7 +172,10 @@ export default function LoginPage() {
 
                 <p className="text-center text-sm text-muted-foreground">
                   Нет аккаунта?{" "}
-                  <Link href="/register" className="text-primary hover:underline font-medium">
+                  <Link
+                    href="/register"
+                    className="text-primary hover:underline font-medium"
+                  >
                     Зарегистрироваться
                   </Link>
                 </p>

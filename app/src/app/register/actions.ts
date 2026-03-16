@@ -72,7 +72,9 @@ export async function register(
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Аккаунт создан, но не удалось войти. Попробуйте вручную." };
+      return {
+        error: "Аккаунт создан, но не удалось войти. Попробуйте вручную.",
+      };
     }
     throw error;
   }

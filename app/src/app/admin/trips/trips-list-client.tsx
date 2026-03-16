@@ -50,13 +50,22 @@ interface Trip {
   createdAt: string;
 }
 
-const statusMap: Record<
-  TripStatus,
-  { label: string; className: string }
-> = {
-  draft: { label: "Черновик", className: "bg-amber-100 text-amber-700 border-transparent dark:bg-amber-900/30 dark:text-amber-400" },
-  active: { label: "Активна", className: "bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-900/30 dark:text-emerald-400" },
-  completed: { label: "Завершена", className: "bg-sky-100 text-sky-700 border-transparent dark:bg-sky-900/30 dark:text-sky-400" },
+const statusMap: Record<TripStatus, { label: string; className: string }> = {
+  draft: {
+    label: "Черновик",
+    className:
+      "bg-amber-100 text-amber-700 border-transparent dark:bg-amber-900/30 dark:text-amber-400",
+  },
+  active: {
+    label: "Активна",
+    className:
+      "bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-900/30 dark:text-emerald-400",
+  },
+  completed: {
+    label: "Завершена",
+    className:
+      "bg-sky-100 text-sky-700 border-transparent dark:bg-sky-900/30 dark:text-sky-400",
+  },
 };
 
 function formatDate(dateStr: string) {
