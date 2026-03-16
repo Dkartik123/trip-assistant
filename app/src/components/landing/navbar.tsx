@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { Menu, X, Globe, Plane } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 export function Navbar() {
   const t = useTranslations("nav");
@@ -65,12 +66,12 @@ export function Navbar() {
             </div>
           </div>
 
-          <a
+          <Link
             href="/login"
             className="rounded-lg bg-[oklch(0.50_0.22_252)] px-4 py-2 text-sm font-medium text-white hover:bg-[oklch(0.55_0.22_252)] transition-colors"
           >
             {t("signIn")}
-          </a>
+          </Link>
         </div>
 
         {/* Mobile menu toggle */}
@@ -107,12 +108,12 @@ export function Navbar() {
               </button>
             ))}
           </div>
-          <a
+          <Link
             href="/login"
             className="block rounded-lg bg-[oklch(0.50_0.22_252)] px-4 py-2 text-sm font-medium text-white text-center hover:bg-[oklch(0.55_0.22_252)] transition-colors"
           >
             {t("signIn")}
-          </a>
+          </Link>
         </div>
       )}
     </nav>
