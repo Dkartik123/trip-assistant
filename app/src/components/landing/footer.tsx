@@ -21,20 +21,31 @@ export function Footer() {
 
           {/* Product */}
           <div>
-            <h4 className="text-sm font-semibold text-white/70 mb-3">{t("product")}</h4>
+            <h4 className="text-sm font-semibold text-white/70 mb-3">
+              {t("product")}
+            </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#features" className="text-sm text-white/40 hover:text-white/70 transition-colors">
+                <a
+                  href="#features"
+                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
+                >
                   Features
                 </a>
               </li>
               <li>
-                <a href="#pricing" className="text-sm text-white/40 hover:text-white/70 transition-colors">
+                <a
+                  href="#pricing"
+                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
+                >
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#demo" className="text-sm text-white/40 hover:text-white/70 transition-colors">
+                <a
+                  href="#demo"
+                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
+                >
                   Demo
                 </a>
               </li>
@@ -53,13 +64,19 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold text-white/70 mb-3">{t("legal")}</h4>
+            <h4 className="text-sm font-semibold text-white/70 mb-3">
+              {t("legal")}
+            </h4>
             <ul className="space-y-2">
               <li>
-                <span className="text-sm text-white/30 cursor-default">{t("privacy")}</span>
+                <span className="text-sm text-white/30 cursor-default">
+                  {t("privacy")}
+                </span>
               </li>
               <li>
-                <span className="text-sm text-white/30 cursor-default">{t("terms")}</span>
+                <span className="text-sm text-white/30 cursor-default">
+                  {t("terms")}
+                </span>
               </li>
             </ul>
           </div>

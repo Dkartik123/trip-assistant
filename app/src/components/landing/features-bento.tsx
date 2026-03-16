@@ -21,7 +21,10 @@ export function FeaturesBento() {
   const t = useTranslations("features");
 
   return (
-    <section id="features" className="relative bg-[oklch(0.98_0_0)] py-24 sm:py-32">
+    <section
+      id="features"
+      className="relative bg-[oklch(0.98_0_0)] py-24 sm:py-32"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">

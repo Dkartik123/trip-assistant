@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     if (!name || !email) {
       return NextResponse.json(
         { error: "Name and email are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       console.error("[contact] RESEND_API_KEY not set");
       return NextResponse.json(
         { error: "Email service not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     console.error("[contact] Failed to send email:", error);
     return NextResponse.json(
       { error: "Failed to send email" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

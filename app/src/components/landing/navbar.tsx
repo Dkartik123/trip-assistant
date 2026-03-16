@@ -28,7 +28,10 @@ export function Navbar() {
     <nav className="fixed top-0 z-50 w-full border-b border-white/10 bg-[oklch(0.13_0.04_252/0.85)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2 text-white font-semibold text-lg">
+        <a
+          href="#"
+          className="flex items-center gap-2 text-white font-semibold text-lg"
+        >
           <Plane className="h-5 w-5 text-[oklch(0.62_0.20_252)]" />
           Trip Assistant
         </a>
@@ -60,7 +63,11 @@ export function Navbar() {
                   onClick={() => switchLocale(loc)}
                   className="px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 text-left transition-colors"
                 >
-                  {loc === "en" ? "English" : loc === "ru" ? "Русский" : "Eesti"}
+                  {loc === "en"
+                    ? "English"
+                    : loc === "ru"
+                      ? "Русский"
+                      : "Eesti"}
                 </button>
               ))}
             </div>
@@ -80,7 +87,11 @@ export function Navbar() {
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {mobileOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
         </button>
       </div>
 
@@ -101,7 +112,10 @@ export function Navbar() {
             {routing.locales.map((loc) => (
               <button
                 key={loc}
-                onClick={() => { switchLocale(loc); setMobileOpen(false); }}
+                onClick={() => {
+                  switchLocale(loc);
+                  setMobileOpen(false);
+                }}
                 className="rounded bg-white/10 px-3 py-1 text-sm text-white/80 hover:bg-white/20 transition-colors"
               >
                 {loc.toUpperCase()}

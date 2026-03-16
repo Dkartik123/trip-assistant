@@ -6,7 +6,9 @@ import { useState } from "react";
 
 export function ContactForm() {
   const t = useTranslations("contact");
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -17,7 +19,8 @@ export function ContactForm() {
       name: (form.elements.namedItem("name") as HTMLInputElement).value,
       email: (form.elements.namedItem("email") as HTMLInputElement).value,
       agency: (form.elements.namedItem("agency") as HTMLInputElement).value,
-      message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
+      message: (form.elements.namedItem("message") as HTMLTextAreaElement)
+        .value,
     };
 
     try {
@@ -39,7 +42,10 @@ export function ContactForm() {
   }
 
   return (
-    <section id="contact" className="relative py-24 sm:py-32 bg-[oklch(0.13_0.04_252)]">
+    <section
+      id="contact"
+      className="relative py-24 sm:py-32 bg-[oklch(0.13_0.04_252)]"
+    >
       {/* Background glow */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] rounded-full bg-[oklch(0.25_0.12_252/0.2)] blur-[100px]" />
@@ -52,16 +58,17 @@ export function ContactForm() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
             {t("title")}
           </h2>
-          <p className="mt-4 text-lg text-white/50">
-            {t("subtitle")}
-          </p>
+          <p className="mt-4 text-lg text-white/50">{t("subtitle")}</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-white/70 mb-1.5">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-white/70 mb-1.5"
+              >
                 {t("form.name")}
               </label>
               <input
@@ -73,7 +80,10 @@ export function ContactForm() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-1.5">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-white/70 mb-1.5"
+              >
                 {t("form.email")}
               </label>
               <input
@@ -87,7 +97,10 @@ export function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="agency" className="block text-sm font-medium text-white/70 mb-1.5">
+            <label
+              htmlFor="agency"
+              className="block text-sm font-medium text-white/70 mb-1.5"
+            >
               {t("form.agency")}
             </label>
             <input
@@ -99,7 +112,10 @@ export function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-white/70 mb-1.5">
+            <label
+              htmlFor="message"
+              className="block text-sm font-medium text-white/70 mb-1.5"
+            >
               {t("form.message")}
             </label>
             <textarea
@@ -127,10 +143,14 @@ export function ContactForm() {
 
           {/* Status messages */}
           {status === "success" && (
-            <p className="text-center text-sm text-emerald-400">{t("form.success")}</p>
+            <p className="text-center text-sm text-emerald-400">
+              {t("form.success")}
+            </p>
           )}
           {status === "error" && (
-            <p className="text-center text-sm text-red-400">{t("form.error")}</p>
+            <p className="text-center text-sm text-red-400">
+              {t("form.error")}
+            </p>
           )}
         </form>
       </div>

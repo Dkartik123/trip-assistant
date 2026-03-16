@@ -7,7 +7,10 @@ export function Pricing() {
   const t = useTranslations("pricing");
 
   return (
-    <section id="pricing" className="relative bg-[oklch(0.98_0_0)] py-24 sm:py-32">
+    <section
+      id="pricing"
+      className="relative bg-[oklch(0.98_0_0)] py-24 sm:py-32"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -54,7 +57,9 @@ export function Pricing() {
                   </h3>
                   <p
                     className={`mt-1 text-sm ${
-                      isPopular ? "text-white/60" : "text-[oklch(0.45_0.02_252)]"
+                      isPopular
+                        ? "text-white/60"
+                        : "text-[oklch(0.45_0.02_252)]"
                     }`}
                   >
                     {t(`${plan}.description`)}
@@ -72,7 +77,9 @@ export function Pricing() {
                   </span>
                   <span
                     className={`text-sm ${
-                      isPopular ? "text-white/50" : "text-[oklch(0.45_0.02_252)]"
+                      isPopular
+                        ? "text-white/50"
+                        : "text-[oklch(0.45_0.02_252)]"
                     }`}
                   >
                     {t("monthly")}
@@ -92,7 +99,9 @@ export function Pricing() {
                       />
                       <span
                         className={`text-sm ${
-                          isPopular ? "text-white/80" : "text-[oklch(0.35_0.02_252)]"
+                          isPopular
+                            ? "text-white/80"
+                            : "text-[oklch(0.35_0.02_252)]"
                         }`}
                       >
                         {feature}

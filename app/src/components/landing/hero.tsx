@@ -71,8 +71,12 @@ export function Hero() {
             { value: "<3s", label: "Response time" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-white">{stat.value}</div>
-              <div className="text-xs sm:text-sm text-white/40 mt-1">{stat.label}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white">
+                {stat.value}
+              </div>
+              <div className="text-xs sm:text-sm text-white/40 mt-1">
+                {stat.label}
+              </div>
             </div>
           ))}
         </div>
