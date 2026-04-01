@@ -25,7 +25,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     const client = await clientRepository.findById(trip.clientId);
     const buffer = await generateTripPdf(trip, client?.name);
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${buildTripPdfFileName(trip, client?.name)}"`,

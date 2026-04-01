@@ -50,7 +50,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     const client = await clientRepository.findById(trip.clientId);
     const buffer = await generateWalletPass(trip, flight, index, client?.name);
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/vnd.apple.pkpass",
         "Content-Disposition": `attachment; filename="${buildWalletPassFileName(trip, flight, index)}"`,
