@@ -44,6 +44,9 @@ import {
   Send,
   Headset,
   Loader2,
+  FileText,
+  CalendarDays,
+  WalletCards,
 } from "lucide-react";
 import type {
   FlightItem,
@@ -55,7 +58,7 @@ import type {
   InsuranceItem,
   AttractionItem,
 } from "@/lib/types/trip-sections";
-import { formatDate, formatTime } from "@/lib/utils/date";
+import { formatTime } from "@/lib/utils/date";
 
 interface TripData {
   id: string;
@@ -128,11 +131,15 @@ export function TripDetailClient({
   trip,
   messages: tripMessages,
   subscribers = [],
+  googleCalendarUrl,
+  walletEnabled,
 }: {
   id: string;
   trip: TripData;
   messages: MessageData[];
   subscribers?: SubscriberData[];
+  googleCalendarUrl: string;
+  walletEnabled: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const botUsername =
@@ -173,6 +180,30 @@ export function TripDetailClient({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            nativeButton={false}
+            variant="outline"
+            render={
+              <a
+                href={`/api/trips/${id}/exports/pdf`}
+                target="_blank"
+                rel="noreferrer"
+              />
+            }
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+          <Button
+            nativeButton={false}
+            variant="outline"
+            render={
+              <a href={googleCalendarUrl} target="_blank" rel="noreferrer" />
+            }
+          >
+            <CalendarDays className="mr-2 h-4 w-4" />
+            Google Calendar
+          </Button>
           <Dialog>
             <DialogTrigger render={<Button variant="outline" />}>
               <LinkIcon className="mr-2 h-4 w-4" />
@@ -229,16 +260,34 @@ export function TripDetailClient({
                   return (
                     <div key={i}>
                       {i > 0 && <Separator className="mb-4" />}
-                      <div className="flex items-center gap-2 mb-2">
-                        {rType === "train" ? (
-                          <TrainFront className="h-3.5 w-3.5 text-muted-foreground" />
-                        ) : (
-                          <Plane className="h-3.5 w-3.5 text-muted-foreground" />
-                        )}
-                        <span className="text-xs font-medium uppercase text-muted-foreground">
-                          {rType === "train" ? "Поезд" : "Авиарейс"}
-                        </span>
-                      </div>
+                       <div className="mb-2 flex items-center justify-between gap-2">
+                         <div className="flex items-center gap-2">
+                           {rType === "train" ? (
+                             <TrainFront className="h-3.5 w-3.5 text-muted-foreground" />
+                           ) : (
+                             <Plane className="h-3.5 w-3.5 text-muted-foreground" />
+                           )}
+                           <span className="text-xs font-medium uppercase text-muted-foreground">
+                             {rType === "train" ? "Поезд" : "Авиарейс"}
+                           </span>
+                         </div>
+                         <Button
+                           nativeButton={false}
+                           variant="outline"
+                           size="sm"
+                           disabled={!walletEnabled}
+                           render={
+                             <a
+                               href={`/api/trips/${id}/flights/${i}/wallet`}
+                               target="_blank"
+                               rel="noreferrer"
+                             />
+                           }
+                         >
+                           <WalletCards className="mr-1 h-3.5 w-3.5" />
+                           Wallet
+                         </Button>
+                       </div>
                       <div className="grid gap-3 sm:grid-cols-3">
                         {rType === "flight" && (
                           <>
