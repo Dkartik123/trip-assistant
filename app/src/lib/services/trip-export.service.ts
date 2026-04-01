@@ -50,7 +50,10 @@ export function normalizeTripSummary(parts: string[]): string {
   return parts.map(normalizeText).join("\n\n");
 }
 
-function sanitizeFilePart(value: string | null | undefined, fallback: string): string {
+function sanitizeFilePart(
+  value: string | null | undefined,
+  fallback: string,
+): string {
   const cleaned = (value ?? "")
     .trim()
     .toLowerCase()
@@ -92,7 +95,10 @@ function toDateWithFallbackTime(
 }
 
 function toGoogleCalendarDateFormat(value: Date): string {
-  return value.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  return value
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}Z$/, "Z");
 }
 
 function formatDateTime(value: string | null | undefined): string {
@@ -154,7 +160,9 @@ function resolveTripWindow(trip: Trip): { start: Date; end: Date } {
 
     if (start) {
       candidatesStart.push(start);
-      candidatesEnd.push(new Date(start.getTime() + DEFAULT_ATTRACTION_DURATION_MS));
+      candidatesEnd.push(
+        new Date(start.getTime() + DEFAULT_ATTRACTION_DURATION_MS),
+      );
     }
   }
 
@@ -215,8 +223,9 @@ function buildTripDetails(trip: Trip): string {
     details.push(
       "",
       "Hotels:",
-      ...hotels.map((hotel) =>
-        `• ${hotel.hotelName || "Hotel"}${hotel.hotelAddress ? ` — ${hotel.hotelAddress}` : ""}`,
+      ...hotels.map(
+        (hotel) =>
+          `• ${hotel.hotelName || "Hotel"}${hotel.hotelAddress ? ` — ${hotel.hotelAddress}` : ""}`,
       ),
     );
   }
@@ -271,10 +280,7 @@ export function canGenerateWalletPasses(): boolean {
   }
 }
 
-export function buildTripPdfFileName(
-  trip: Trip,
-  clientName?: string,
-): string {
+export function buildTripPdfFileName(trip: Trip, clientName?: string): string {
   return `${sanitizeFilePart(clientName, "trip")}-${sanitizeFilePart(trip.id, "itinerary")}.pdf`;
 }
 
@@ -289,7 +295,10 @@ export function buildWalletPassFileName(
   return `${sanitizeFilePart(number, `ticket-${flightIndex + 1}`)}-${sanitizeFilePart(trip.id, "trip")}.pkpass`;
 }
 
-export function buildGoogleCalendarUrl(trip: Trip, clientName?: string): string {
+export function buildGoogleCalendarUrl(
+  trip: Trip,
+  clientName?: string,
+): string {
   const { start, end } = resolveTripWindow(trip);
   const params = new URLSearchParams({
     text: buildTripTitle(trip, clientName),
@@ -315,7 +324,9 @@ export async function generateTripPdf(
     },
   });
 
-  const summary = normalizeTripSummary(tripMessageService.formatFullSummary(trip));
+  const summary = normalizeTripSummary(
+    tripMessageService.formatFullSummary(trip),
+  );
 
   doc.fontSize(20).text(buildTripTitle(trip, clientName));
   doc.moveDown();

@@ -188,7 +188,10 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
 
         const pdfBuffer = await generateTripPdf(summarized, travelerName);
         await ctx.replyWithDocument(
-          new InputFile(pdfBuffer, buildTripPdfFileName(summarized, travelerName)),
+          new InputFile(
+            pdfBuffer,
+            buildTripPdfFileName(summarized, travelerName),
+          ),
           {
             caption: "📄 PDF itinerary",
           },

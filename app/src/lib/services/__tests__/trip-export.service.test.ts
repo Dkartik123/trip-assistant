@@ -24,9 +24,8 @@ describe("trip-export.service", () => {
   });
 
   it("builds a Google Calendar URL from trip data", async () => {
-    const { buildGoogleCalendarUrl } = await import(
-      "@/lib/services/trip-export.service"
-    );
+    const { buildGoogleCalendarUrl } =
+      await import("@/lib/services/trip-export.service");
 
     const url = buildGoogleCalendarUrl(
       {
@@ -113,9 +112,8 @@ describe("trip-export.service", () => {
   });
 
   it("generates a PDF buffer", async () => {
-    const { generateTripPdf } = await import(
-      "@/lib/services/trip-export.service"
-    );
+    const { generateTripPdf } =
+      await import("@/lib/services/trip-export.service");
 
     const buffer = await generateTripPdf(
       {
@@ -162,22 +160,20 @@ describe("trip-export.service", () => {
   });
 
   it("normalizes HTML trip summary text for PDF export", async () => {
-    const { normalizeTripSummary } = await import(
-      "@/lib/services/trip-export.service"
-    );
+    const { normalizeTripSummary } =
+      await import("@/lib/services/trip-export.service");
 
     expect(
       normalizeTripSummary([
         "📄 <b>Documents</b>\nLine &amp; more&nbsp;&#8364;",
-        "<i>Ready</i>\n\n\n<a href=\"https://example.com\">Link</a> &copy;",
+        '<i>Ready</i>\n\n\n<a href="https://example.com">Link</a> &copy;',
       ]),
     ).toBe("📄 Documents\nLine & more €\n\nReady\n\nLink ©");
   });
 
   it("reports wallet support as disabled without certificates", async () => {
-    const { canGenerateWalletPasses } = await import(
-      "@/lib/services/trip-export.service"
-    );
+    const { canGenerateWalletPasses } =
+      await import("@/lib/services/trip-export.service");
 
     expect(canGenerateWalletPasses()).toBe(false);
   });

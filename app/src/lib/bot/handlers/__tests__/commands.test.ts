@@ -43,7 +43,9 @@ const mockGenerateTripPdf = vi.fn().mockResolvedValue(Buffer.from("pdf"));
 const mockGenerateWalletPass = vi.fn().mockResolvedValue(Buffer.from("pkpass"));
 const mockBuildGoogleCalendarUrl = vi
   .fn()
-  .mockReturnValue("https://calendar.google.com/calendar/render?action=TEMPLATE");
+  .mockReturnValue(
+    "https://calendar.google.com/calendar/render?action=TEMPLATE",
+  );
 const mockBuildTripPdfFileName = vi.fn().mockReturnValue("trip.pdf");
 const mockBuildWalletPassFileName = vi.fn().mockReturnValue("ticket.pkpass");
 const mockCanGenerateWalletPasses = vi.fn().mockReturnValue(true);
@@ -254,9 +256,12 @@ describe("Bot Commands", () => {
 
     await new Promise((r) => setTimeout(r, BACKGROUND_TASK_SETTLE_MS));
 
-    expect(ctx.reply).toHaveBeenCalledWith(expect.stringContaining("Documents"), {
-      parse_mode: "HTML",
-    });
+    expect(ctx.reply).toHaveBeenCalledWith(
+      expect.stringContaining("Documents"),
+      {
+        parse_mode: "HTML",
+      },
+    );
     expect(mockGenerateTripPdf).toHaveBeenCalled();
     expect(ctx.replyWithDocument).toHaveBeenCalledTimes(2);
     expect(ctx.reply).toHaveBeenCalledWith(

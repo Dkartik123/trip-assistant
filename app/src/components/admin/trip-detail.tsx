@@ -265,34 +265,34 @@ export function TripDetailClient({
                   return (
                     <div key={i}>
                       {i > 0 && <Separator className="mb-4" />}
-                       <div className="mb-2 flex items-center justify-between gap-2">
-                         <div className="flex items-center gap-2">
-                           {rType === "train" ? (
-                             <TrainFront className="h-3.5 w-3.5 text-muted-foreground" />
-                           ) : (
-                             <Plane className="h-3.5 w-3.5 text-muted-foreground" />
-                           )}
-                           <span className="text-xs font-medium uppercase text-muted-foreground">
-                             {TRANSPORT_TYPE_LABELS[rType]}
-                           </span>
-                         </div>
-                         <Button
-                           nativeButton={false}
-                           variant="outline"
-                           size="sm"
-                           disabled={!walletEnabled}
-                           render={
-                             <a
-                               href={`/api/trips/${id}/flights/${i}/wallet`}
-                               target="_blank"
-                               rel="noreferrer"
-                             />
-                           }
-                         >
-                           <WalletCards className="mr-1 h-3.5 w-3.5" />
-                           Wallet
-                         </Button>
-                       </div>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {rType === "train" ? (
+                            <TrainFront className="h-3.5 w-3.5 text-muted-foreground" />
+                          ) : (
+                            <Plane className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                          <span className="text-xs font-medium uppercase text-muted-foreground">
+                            {TRANSPORT_TYPE_LABELS[rType]}
+                          </span>
+                        </div>
+                        <Button
+                          nativeButton={false}
+                          variant="outline"
+                          size="sm"
+                          disabled={!walletEnabled}
+                          render={
+                            <a
+                              href={`/api/trips/${id}/flights/${i}/wallet`}
+                              target="_blank"
+                              rel="noreferrer"
+                            />
+                          }
+                        >
+                          <WalletCards className="mr-1 h-3.5 w-3.5" />
+                          Wallet
+                        </Button>
+                      </div>
                       <div className="grid gap-3 sm:grid-cols-3">
                         {rType === "flight" && (
                           <>
