@@ -11,6 +11,8 @@ const WALLET_ICON_PNG = Buffer.from(
 
 const GOOGLE_CALENDAR_BASE_URL =
   "https://calendar.google.com/calendar/render?action=TEMPLATE";
+const DEFAULT_ATTRACTION_DURATION_MS = 2 * 60 * 60 * 1000;
+const DEFAULT_TRIP_DURATION_MS = 4 * 60 * 60 * 1000;
 
 function decodeHtml(text: string): string {
   return text
@@ -29,6 +31,10 @@ function normalizeText(text: string): string {
     .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+export function normalizeTripSummary(parts: string[]): string {
+  return parts.map(normalizeText).join("\n\n");
 }
 
 function sanitizeFilePart(value: string | null | undefined, fallback: string): string {
@@ -131,9 +137,7 @@ function resolveTripWindow(trip: Trip): { start: Date; end: Date } {
 
     if (start) {
       candidatesStart.push(start);
-      candidatesEnd.push(
-        new Date(start.getTime() + 2 * 60 * 60 * 1000),
-      );
+      candidatesEnd.push(new Date(start.getTime() + DEFAULT_ATTRACTION_DURATION_MS));
     }
   }
 
@@ -144,12 +148,12 @@ function resolveTripWindow(trip: Trip): { start: Date; end: Date } {
   const end =
     candidatesEnd.sort((a, b) => b.getTime() - a.getTime())[0] ??
     toDate(trip.arrivalDate) ??
-    new Date(start.getTime() + 4 * 60 * 60 * 1000);
+    new Date(start.getTime() + DEFAULT_TRIP_DURATION_MS);
 
   if (end.getTime() <= start.getTime()) {
     return {
       start,
-      end: new Date(start.getTime() + 4 * 60 * 60 * 1000),
+      end: new Date(start.getTime() + DEFAULT_TRIP_DURATION_MS),
     };
   }
 
@@ -293,10 +297,7 @@ export async function generateTripPdf(
     },
   });
 
-  const summary = tripMessageService
-    .formatFullSummary(trip)
-    .map(normalizeText)
-    .join("\n\n");
+  const summary = normalizeTripSummary(tripMessageService.formatFullSummary(trip));
 
   doc.fontSize(20).text(buildTripTitle(trip, clientName));
   doc.moveDown();

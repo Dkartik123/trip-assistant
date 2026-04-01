@@ -203,14 +203,20 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
           : [];
 
         if (canGenerateWalletPasses()) {
-          for (const [index, flight] of flights.entries()) {
-            const passBuffer = await generateWalletPass(
-              summarized,
+          const walletPasses = await Promise.all(
+            flights.map(async (flight, index) => ({
               flight,
               index,
-              travelerName,
-            );
+              passBuffer: await generateWalletPass(
+                summarized,
+                flight,
+                index,
+                travelerName,
+              ),
+            })),
+          );
 
+          for (const { flight, index, passBuffer } of walletPasses) {
             await ctx.replyWithDocument(
               new InputFile(
                 passBuffer,

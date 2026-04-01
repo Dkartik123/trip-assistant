@@ -161,6 +161,19 @@ describe("trip-export.service", () => {
     expect(buffer.subarray(0, 4).toString()).toBe("%PDF");
   });
 
+  it("normalizes HTML trip summary text for PDF export", async () => {
+    const { normalizeTripSummary } = await import(
+      "@/lib/services/trip-export.service"
+    );
+
+    expect(
+      normalizeTripSummary([
+        "📄 <b>Documents</b>\nLine &amp; more",
+        "<i>Ready</i>\n\n\n<a href=\"https://example.com\">Link</a>",
+      ]),
+    ).toBe("📄 Documents\nLine & more\n\nReady\n\nLink");
+  });
+
   it("reports wallet support as disabled without certificates", async () => {
     const { canGenerateWalletPasses } = await import(
       "@/lib/services/trip-export.service"

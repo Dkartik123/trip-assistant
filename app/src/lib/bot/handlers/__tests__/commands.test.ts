@@ -47,6 +47,7 @@ const mockBuildGoogleCalendarUrl = vi
 const mockBuildTripPdfFileName = vi.fn().mockReturnValue("trip.pdf");
 const mockBuildWalletPassFileName = vi.fn().mockReturnValue("ticket.pkpass");
 const mockCanGenerateWalletPasses = vi.fn().mockReturnValue(true);
+const ASYNC_HANDLER_SETTLE_MS = 50;
 
 vi.mock("@/lib/services/trip-message.service", () => ({
   tripMessageService: {
@@ -128,7 +129,7 @@ describe("Bot Commands", () => {
     expect(ctx.reply).toHaveBeenCalledWith("⏳ Loading your trip summary...");
 
     // Background work runs asynchronously — wait a tick for it to resolve
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, ASYNC_HANDLER_SETTLE_MS));
 
     // Background call sends the formatted summary with HTML parse_mode
     expect(ctx.reply).toHaveBeenCalledWith(
@@ -193,7 +194,7 @@ describe("Bot Commands", () => {
     expect(ctx.reply).toHaveBeenCalledWith("⏳ Loading hotel details...");
 
     // Background work resolves
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, ASYNC_HANDLER_SETTLE_MS));
 
     expect(mockFormatHotels).toHaveBeenCalled();
     expect(ctx.reply).toHaveBeenCalledWith(expect.stringContaining("Hotel"), {
@@ -251,7 +252,7 @@ describe("Bot Commands", () => {
 
     expect(ctx.reply).toHaveBeenCalledWith("⏳ Loading documents...");
 
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, ASYNC_HANDLER_SETTLE_MS));
 
     expect(ctx.reply).toHaveBeenCalledWith(expect.stringContaining("Documents"), {
       parse_mode: "HTML",
