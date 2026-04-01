@@ -1,11 +1,10 @@
-import { Context } from "grammy";
+import { Context, InputFile } from "grammy";
 import { createLogger } from "@/lib/logger";
 import {
   clientRepository,
   tripRepository,
   subscriberRepository,
   type Trip,
-  type Client,
 } from "@/lib/db/repositories";
 import {
   tripMessageService,
@@ -13,6 +12,15 @@ import {
   translateParts,
   translateMessage,
 } from "@/lib/services/trip-message.service";
+import {
+  buildGoogleCalendarUrl,
+  buildTripPdfFileName,
+  buildWalletPassFileName,
+  canGenerateWalletPasses,
+  generateTripPdf,
+  generateWalletPass,
+} from "@/lib/services/trip-export.service";
+import type { FlightItem } from "@/lib/types/trip-sections";
 
 const log = createLogger("bot:commands");
 
@@ -23,7 +31,7 @@ const log = createLogger("bot:commands");
  */
 async function resolveTrip(
   ctx: Context,
-): Promise<{ trip: Trip; language: string } | null> {
+): Promise<{ trip: Trip; language: string; travelerName?: string } | null> {
   const chatId = ctx.chat?.id?.toString();
   if (!chatId) return null;
 
@@ -36,7 +44,11 @@ async function resolveTrip(
   if (client) {
     const trip = await tripRepository.findByClientId(client.id);
     if (trip) {
-      return { trip, language: client.language ?? "en" };
+      return {
+        trip,
+        language: client.language ?? "en",
+        travelerName: client.name,
+      };
     }
   }
 
@@ -45,7 +57,11 @@ async function resolveTrip(
   if (subscriber) {
     const trip = await tripRepository.findById(subscriber.tripId);
     if (trip) {
-      return { trip, language: subscriber.language ?? "en" };
+      return {
+        trip,
+        language: subscriber.language ?? "en",
+        travelerName: subscriber.name ?? undefined,
+      };
     }
   }
 
@@ -159,7 +175,7 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
   try {
     const result = await resolveTrip(ctx);
     if (!result) return;
-    const { trip, language } = result;
+    const { trip, language, travelerName } = result;
 
     await ctx.reply("⏳ Loading documents...");
 
@@ -169,6 +185,55 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
         const text = tripMessageService.formatDocs(summarized);
         const translated = await translateMessage(text, language);
         await ctx.reply(translated, { parse_mode: "HTML" });
+
+        const pdfBuffer = await generateTripPdf(summarized, travelerName);
+        await ctx.replyWithDocument(
+          new InputFile(
+            pdfBuffer,
+            buildTripPdfFileName(summarized, travelerName),
+          ),
+          {
+            caption: "📄 PDF itinerary",
+          },
+        );
+
+        await ctx.reply(
+          `📅 Add this trip to Google Calendar:\n${buildGoogleCalendarUrl(summarized, travelerName)}`,
+        );
+
+        const flights = Array.isArray(summarized.flights)
+          ? (summarized.flights as FlightItem[])
+          : [];
+
+        if (canGenerateWalletPasses()) {
+          const walletPasses = await Promise.all(
+            flights.map(async (flight, index) => ({
+              flight,
+              index,
+              passBuffer: await generateWalletPass(
+                summarized,
+                flight,
+                index,
+                travelerName,
+              ),
+            })),
+          );
+
+          for (const { flight, index, passBuffer } of walletPasses) {
+            await ctx.replyWithDocument(
+              new InputFile(
+                passBuffer,
+                buildWalletPassFileName(summarized, flight, index),
+              ),
+              {
+                caption:
+                  flight.type === "train"
+                    ? "🎫 Wallet ticket"
+                    : "🎫 Wallet boarding pass",
+              },
+            );
+          }
+        }
       } catch (error) {
         log.error({ error }, "Failed /docs background work");
         await ctx.reply("⚠️ Could not load documents.").catch(() => {});

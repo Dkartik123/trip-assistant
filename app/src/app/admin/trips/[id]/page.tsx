@@ -5,6 +5,10 @@ import {
   clientRepository,
   subscriberRepository,
 } from "@/lib/db/repositories";
+import {
+  buildGoogleCalendarUrl,
+  canGenerateWalletPasses,
+} from "@/lib/services/trip-export.service";
 import { notFound } from "next/navigation";
 import type {
   FlightItem,
@@ -75,6 +79,8 @@ export default async function TripDetailPage({
       trip={tripData}
       messages={messages}
       subscribers={subscriberData}
+      googleCalendarUrl={buildGoogleCalendarUrl(trip, client?.name)}
+      walletEnabled={canGenerateWalletPasses()}
     />
   );
 }

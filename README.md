@@ -85,3 +85,9 @@ app/
 | `npm run test` | Run Vitest tests |
 | `npm run lint` | ESLint check |
 | `npm run format` | Prettier format |
+
+## Trip exports
+
+- `/docs` in Telegram now sends the trip as a PDF file and includes a Google Calendar link.
+- In the admin trip page you can download the PDF and open a prefilled Google Calendar event.
+- Apple Wallet ticket export is available per flight when the Apple Wallet certificate variables from `.env.example` are configured.
