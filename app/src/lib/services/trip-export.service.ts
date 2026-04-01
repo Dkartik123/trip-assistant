@@ -8,20 +8,33 @@ const WALLET_ICON_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==",
   "base64",
 );
-
+const DEFAULT_ORGANIZATION_NAME = "Trip Assistant";
 const GOOGLE_CALENDAR_BASE_URL =
   "https://calendar.google.com/calendar/render?action=TEMPLATE";
 const DEFAULT_ATTRACTION_DURATION_MS = 2 * 60 * 60 * 1000;
 const DEFAULT_TRIP_DURATION_MS = 4 * 60 * 60 * 1000;
 
+function decodeNumericHtmlEntities(text: string): string {
+  return text.replace(/&#(x?[0-9a-f]+);/gi, (_, code: string) => {
+    const value = code.toLowerCase().startsWith("x")
+      ? Number.parseInt(code.slice(1), 16)
+      : Number.parseInt(code, 10);
+
+    return Number.isNaN(value) ? _ : String.fromCodePoint(value);
+  });
+}
+
 function decodeHtml(text: string): string {
-  return text
+  return decodeNumericHtmlEntities(text)
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<[^>]+>/g, "")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&copy;/g, "©")
+    .replace(/&euro;/g, "€")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'");
 }
@@ -78,7 +91,7 @@ function toDateWithFallbackTime(
   return toDate(normalized);
 }
 
-function googleDate(value: Date): string {
+function toGoogleCalendarDateFormat(value: Date): string {
   return value.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 
@@ -93,6 +106,10 @@ function formatDateTime(value: string | null | undefined): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatFlightRoute(flight: FlightItem): string {
+  return `${flight.departureCity || flight.departureAirport || "?"} → ${flight.arrivalCity || flight.arrivalAirport || "?"}`;
 }
 
 function buildTripTitle(trip: Trip, clientName?: string): string {
@@ -186,7 +203,7 @@ function buildTripDetails(trip: Trip): string {
           flight.type === "train"
             ? flight.trainNumber || "Train"
             : flight.flightNumber || "Flight";
-        const route = `${flight.departureCity || flight.departureAirport || "?"} → ${flight.arrivalCity || flight.arrivalAirport || "?"}`;
+        const route = formatFlightRoute(flight);
         const departure = formatDateTime(flight.flightDate);
         return `• ${number}: ${route}${departure ? ` (${departure})` : ""}`;
       }),
@@ -267,7 +284,8 @@ export function buildWalletPassFileName(
   flightIndex: number,
 ): string {
   const number =
-    flight.type === "train" ? flight.trainNumber : flight.flightNumber;
+    (flight.type === "train" ? flight.trainNumber : flight.flightNumber) ||
+    `${flight.type}-ticket-${flightIndex + 1}`;
   return `${sanitizeFilePart(number, `ticket-${flightIndex + 1}`)}-${sanitizeFilePart(trip.id, "trip")}.pkpass`;
 }
 
@@ -275,7 +293,7 @@ export function buildGoogleCalendarUrl(trip: Trip, clientName?: string): string 
   const { start, end } = resolveTripWindow(trip);
   const params = new URLSearchParams({
     text: buildTripTitle(trip, clientName),
-    dates: `${googleDate(start)}/${googleDate(end)}`,
+    dates: `${toGoogleCalendarDateFormat(start)}/${toGoogleCalendarDateFormat(end)}`,
     details: buildTripDetails(trip),
     location: buildTripLocation(trip),
   });
@@ -321,7 +339,7 @@ export async function generateWalletPass(
   const transitType =
     flight.type === "train" ? "PKTransitTypeTrain" : "PKTransitTypeAir";
   const passengerName = walletPassengerName(flight, clientName);
-  const routeLabel = `${flight.departureAirport || flight.departureCity || "?"} → ${flight.arrivalAirport || flight.arrivalCity || "?"}`;
+  const routeLabel = formatFlightRoute(flight);
   const reference =
     flight.type === "train"
       ? flight.trainNumber || `Train ${flightIndex + 1}`
@@ -341,7 +359,8 @@ export async function generateWalletPass(
           passTypeIdentifier,
           teamIdentifier,
           organizationName:
-            process.env.APPLE_WALLET_ORGANIZATION_NAME || "Trip Assistant",
+            process.env.APPLE_WALLET_ORGANIZATION_NAME ||
+            DEFAULT_ORGANIZATION_NAME,
           description: "Trip ticket",
           logoText: "Trip Assistant",
           foregroundColor: "rgb(255,255,255)",

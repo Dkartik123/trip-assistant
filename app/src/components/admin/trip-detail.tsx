@@ -109,6 +109,11 @@ const statusMap = {
   },
 };
 
+const TRANSPORT_TYPE_LABELS = {
+  train: "Поезд",
+  flight: "Авиарейс",
+} as const;
+
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
@@ -268,7 +273,7 @@ export function TripDetailClient({
                              <Plane className="h-3.5 w-3.5 text-muted-foreground" />
                            )}
                            <span className="text-xs font-medium uppercase text-muted-foreground">
-                             {rType === "train" ? "Поезд" : "Авиарейс"}
+                             {TRANSPORT_TYPE_LABELS[rType]}
                            </span>
                          </div>
                          <Button

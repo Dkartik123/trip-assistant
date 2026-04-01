@@ -168,10 +168,10 @@ describe("trip-export.service", () => {
 
     expect(
       normalizeTripSummary([
-        "📄 <b>Documents</b>\nLine &amp; more",
-        "<i>Ready</i>\n\n\n<a href=\"https://example.com\">Link</a>",
+        "📄 <b>Documents</b>\nLine &amp; more&nbsp;&#8364;",
+        "<i>Ready</i>\n\n\n<a href=\"https://example.com\">Link</a> &copy;",
       ]),
-    ).toBe("📄 Documents\nLine & more\n\nReady\n\nLink");
+    ).toBe("📄 Documents\nLine & more €\n\nReady\n\nLink ©");
   });
 
   it("reports wallet support as disabled without certificates", async () => {
