@@ -10,6 +10,10 @@ import {
   generateResponse,
   extractAndUpdateMemory,
 } from "@/lib/services/ai.service";
+import {
+  detectsSupportIntent,
+  handleSupportCommand,
+} from "@/lib/bot/handlers/support";
 import { env } from "@/lib/config/env";
 
 const log = createLogger("bot:message");
@@ -73,6 +77,12 @@ export async function handleMessage(ctx: Context): Promise<void> {
     }
 
     const { trip } = result;
+
+    // Auto-switch to support mode if message signals intent to reach operator
+    if (detectsSupportIntent(userText)) {
+      await handleSupportCommand(ctx);
+      return;
+    }
 
     // Show typing indicator
     await ctx.replyWithChatAction("typing");

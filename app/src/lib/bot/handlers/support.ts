@@ -22,6 +22,32 @@ export function isInSupportMode(chatId: string): boolean {
 }
 
 /**
+ * Detect if a message expresses intent to reach a human operator.
+ * Covers common Russian and English phrases.
+ */
+export function detectsSupportIntent(text: string): boolean {
+  const normalized = text.toLowerCase();
+  const patterns = [
+    /\bоператор\b/,
+    /\bменеджер\b/,
+    /\bподдержк/,
+    /\bпомогите\b/,
+    /\bпомощь\b/,
+    /\bживой человек\b/,
+    /\bживого человека\b/,
+    /нужен.{0,15}(оператор|менеджер|человек)/,
+    /хочу.{0,15}(оператор|менеджер|человек)/,
+    /\boperator\b/,
+    /\bhuman\b/,
+    /\bsupport\b/,
+    /\bagent\b/,
+    /talk to (a |an |)(human|person|agent|operator|someone)/,
+    /speak to (a |an |)(human|person|agent|operator|someone)/,
+  ];
+  return patterns.some((re) => re.test(normalized));
+}
+
+/**
  * Resolve trip for a chat (same logic as other handlers).
  */
 async function resolveTripForChat(chatId: string, isGroup: boolean) {
