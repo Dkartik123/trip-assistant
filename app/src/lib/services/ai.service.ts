@@ -99,7 +99,18 @@ function buildSystemPrompt(trip: Trip): string {
     ? `\n## What the client has shared\n${trip.clientMemory}\n`
     : "";
 
+  const now = new Date();
+  const currentDate = now.toLocaleDateString("en-GB", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return `You are a friendly personal travel assistant for a tourist. You help answer questions about their upcoming trip. Be concise, helpful, and warm.
+
+## Current date
+Today is ${currentDate}. Use this to answer questions like "what's today's date", "how many days until my trip", "is my flight tomorrow", etc.
 
 ## Trip Information
 
