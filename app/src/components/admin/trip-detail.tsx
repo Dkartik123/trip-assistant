@@ -46,7 +46,6 @@ import {
   Loader2,
   FileText,
   CalendarDays,
-  WalletCards,
 } from "lucide-react";
 import type {
   FlightItem,
@@ -137,14 +136,12 @@ export function TripDetailClient({
   messages: tripMessages,
   subscribers = [],
   googleCalendarUrl,
-  walletEnabled,
 }: {
   id: string;
   trip: TripData;
   messages: MessageData[];
   subscribers?: SubscriberData[];
   googleCalendarUrl: string;
-  walletEnabled: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const botUsername =
@@ -276,22 +273,6 @@ export function TripDetailClient({
                             {TRANSPORT_TYPE_LABELS[rType]}
                           </span>
                         </div>
-                        <Button
-                          nativeButton={false}
-                          variant="outline"
-                          size="sm"
-                          disabled={!walletEnabled}
-                          render={
-                            <a
-                              href={`/api/trips/${id}/flights/${i}/wallet`}
-                              target="_blank"
-                              rel="noreferrer"
-                            />
-                          }
-                        >
-                          <WalletCards className="mr-1 h-3.5 w-3.5" />
-                          Wallet
-                        </Button>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-3">
                         {rType === "flight" && (

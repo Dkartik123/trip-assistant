@@ -15,10 +15,7 @@ import {
 import {
   buildGoogleCalendarUrl,
   buildTripPdfFileName,
-  buildWalletPassFileName,
-  canGenerateWalletPasses,
   generateTripPdf,
-  generateWalletPass,
 } from "@/lib/services/trip-export.service";
 import type { FlightItem } from "@/lib/types/trip-sections";
 
@@ -200,40 +197,6 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
         await ctx.reply(
           `📅 Add this trip to Google Calendar:\n${buildGoogleCalendarUrl(summarized, travelerName)}`,
         );
-
-        const flights = Array.isArray(summarized.flights)
-          ? (summarized.flights as FlightItem[])
-          : [];
-
-        if (canGenerateWalletPasses()) {
-          const walletPasses = await Promise.all(
-            flights.map(async (flight, index) => ({
-              flight,
-              index,
-              passBuffer: await generateWalletPass(
-                summarized,
-                flight,
-                index,
-                travelerName,
-              ),
-            })),
-          );
-
-          for (const { flight, index, passBuffer } of walletPasses) {
-            await ctx.replyWithDocument(
-              new InputFile(
-                passBuffer,
-                buildWalletPassFileName(summarized, flight, index),
-              ),
-              {
-                caption:
-                  flight.type === "train"
-                    ? "🎫 Wallet ticket"
-                    : "🎫 Wallet boarding pass",
-              },
-            );
-          }
-        }
       } catch (error) {
         log.error({ error }, "Failed /docs background work");
         await ctx.reply("⚠️ Could not load documents.").catch(() => {});

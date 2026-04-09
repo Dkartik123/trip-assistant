@@ -1,13 +1,8 @@
 import PDFDocument from "pdfkit";
-import { PKPass } from "passkit-generator";
 import type { Trip } from "@/lib/db/repositories";
 import type { FlightItem } from "@/lib/types/trip-sections";
 import { tripMessageService } from "@/lib/services/trip-message.service";
 
-const WALLET_ICON_PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==",
-  "base64",
-);
 const DEFAULT_ORGANIZATION_NAME = "Trip Assistant";
 const GOOGLE_CALENDAR_BASE_URL =
   "https://calendar.google.com/calendar/render?action=TEMPLATE";
@@ -237,62 +232,8 @@ function buildTripDetails(trip: Trip): string {
   return details.join("\n").trim();
 }
 
-function walletCertificates() {
-  const wwdr = process.env.APPLE_WALLET_WWDR_BASE64;
-  const signerCert = process.env.APPLE_WALLET_SIGNER_CERT_BASE64;
-  const signerKey = process.env.APPLE_WALLET_SIGNER_KEY_BASE64;
-  const passTypeIdentifier = process.env.APPLE_WALLET_PASS_TYPE_IDENTIFIER;
-  const teamIdentifier = process.env.APPLE_WALLET_TEAM_IDENTIFIER;
-
-  if (
-    !wwdr ||
-    !signerCert ||
-    !signerKey ||
-    !passTypeIdentifier ||
-    !teamIdentifier
-  ) {
-    throw new Error("Apple Wallet export is not configured");
-  }
-
-  return {
-    certificates: {
-      wwdr: Buffer.from(wwdr, "base64"),
-      signerCert: Buffer.from(signerCert, "base64"),
-      signerKey: Buffer.from(signerKey, "base64"),
-      signerKeyPassphrase:
-        process.env.APPLE_WALLET_SIGNER_KEY_PASSPHRASE || undefined,
-    },
-    passTypeIdentifier,
-    teamIdentifier,
-  };
-}
-
-function walletPassengerName(flight: FlightItem, clientName?: string): string {
-  return flight.passengers?.[0]?.name || clientName || "Passenger";
-}
-
-export function canGenerateWalletPasses(): boolean {
-  try {
-    walletCertificates();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function buildTripPdfFileName(trip: Trip, clientName?: string): string {
   return `${sanitizeFilePart(clientName, "trip")}-${sanitizeFilePart(trip.id, "itinerary")}.pdf`;
-}
-
-export function buildWalletPassFileName(
-  trip: Trip,
-  flight: FlightItem,
-  flightIndex: number,
-): string {
-  const number =
-    (flight.type === "train" ? flight.trainNumber : flight.flightNumber) ||
-    `${flight.type}-ticket-${flightIndex + 1}`;
-  return `${sanitizeFilePart(number, `ticket-${flightIndex + 1}`)}-${sanitizeFilePart(trip.id, "trip")}.pkpass`;
 }
 
 export function buildGoogleCalendarUrl(
@@ -336,140 +277,4 @@ export async function generateTripPdf(
   });
 
   return pdfBufferFromDocument(doc);
-}
-
-export async function generateWalletPass(
-  trip: Trip,
-  flight: FlightItem,
-  flightIndex: number,
-  clientName?: string,
-): Promise<Buffer> {
-  const { certificates, passTypeIdentifier, teamIdentifier } =
-    walletCertificates();
-
-  const transitType =
-    flight.type === "train" ? "PKTransitTypeTrain" : "PKTransitTypeAir";
-  const passengerName = walletPassengerName(flight, clientName);
-  const routeLabel = formatFlightRoute(flight);
-  const reference =
-    flight.type === "train"
-      ? flight.trainNumber || `Train ${flightIndex + 1}`
-      : flight.flightNumber || `Flight ${flightIndex + 1}`;
-
-  const pass = new PKPass(
-    {
-      "icon.png": WALLET_ICON_PNG,
-      "icon@2x.png": WALLET_ICON_PNG,
-      "icon@3x.png": WALLET_ICON_PNG,
-      "logo.png": WALLET_ICON_PNG,
-      "logo@2x.png": WALLET_ICON_PNG,
-      "logo@3x.png": WALLET_ICON_PNG,
-      "pass.json": Buffer.from(
-        JSON.stringify({
-          formatVersion: 1,
-          passTypeIdentifier,
-          teamIdentifier,
-          organizationName:
-            process.env.APPLE_WALLET_ORGANIZATION_NAME ||
-            DEFAULT_ORGANIZATION_NAME,
-          description: "Trip ticket",
-          logoText: "Trip Assistant",
-          foregroundColor: "rgb(255,255,255)",
-          backgroundColor: "rgb(15,23,42)",
-          labelColor: "rgb(203,213,225)",
-          boardingPass: {
-            transitType,
-          },
-        }),
-      ),
-    },
-    certificates,
-    {
-      serialNumber: `${trip.id}-${flightIndex}`,
-      description: `${reference} ticket`,
-      groupingIdentifier: trip.id,
-    },
-  );
-
-  pass.headerFields.push({
-    key: "reference",
-    label: flight.type === "train" ? "TRAIN" : "FLIGHT",
-    value: reference,
-  });
-  pass.primaryFields.push(
-    {
-      key: "origin",
-      label: "FROM",
-      value: flight.departureAirport || flight.departureCity || "—",
-    },
-    {
-      key: "destination",
-      label: "TO",
-      value: flight.arrivalAirport || flight.arrivalCity || "—",
-    },
-  );
-  pass.secondaryFields.push(
-    {
-      key: "passenger",
-      label: "PASSENGER",
-      value: passengerName,
-    },
-    {
-      key: "departure",
-      label: "DEPARTURE",
-      value: formatDateTime(flight.flightDate) || "TBA",
-    },
-  );
-
-  if (flight.type === "train") {
-    pass.auxiliaryFields.push(
-      {
-        key: "seat",
-        label: "SEAT",
-        value: flight.seat || "—",
-      },
-      {
-        key: "class",
-        label: "CLASS",
-        value: flight.carriageClass || "—",
-      },
-    );
-  } else {
-    pass.auxiliaryFields.push(
-      {
-        key: "gate",
-        label: "GATE",
-        value: flight.gate || "TBA",
-      },
-      {
-        key: "route",
-        label: "ROUTE",
-        value: routeLabel,
-      },
-    );
-  }
-
-  pass.backFields.push(
-    {
-      key: "trip",
-      label: "Trip ID",
-      value: trip.id,
-    },
-    {
-      key: "journey",
-      label: "Journey",
-      value: routeLabel,
-    },
-  );
-
-  if (flight.arrivalDate) {
-    pass.backFields.push({
-      key: "arrival",
-      label: "Arrival",
-      value: formatDateTime(flight.arrivalDate),
-    });
-  }
-
-  pass.setBarcodes(`${reference} • ${routeLabel} • ${passengerName}`);
-  return pass.getAsBuffer();
 }
