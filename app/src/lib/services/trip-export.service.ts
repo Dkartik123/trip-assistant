@@ -251,6 +251,33 @@ export function buildGoogleCalendarUrl(
   return `${GOOGLE_CALENDAR_BASE_URL}&${params.toString()}`;
 }
 
+export function buildFlightCalendarUrl(
+  flight: FlightItem,
+  clientName?: string,
+): string | null {
+  const start = toDate(flight.flightDate);
+  if (!start) return null;
+
+  const end =
+    toDate(flight.arrivalDate) ??
+    new Date(start.getTime() + DEFAULT_TRIP_DURATION_MS);
+  const isTrain = flight.type === "train";
+  const number = isTrain ? flight.trainNumber : flight.flightNumber;
+  const route = formatFlightRoute(flight);
+  const title = [clientName, number, route].filter(Boolean).join(" · ");
+  const location = isTrain
+    ? flight.departureStation || flight.departureCity || ""
+    : flight.departureAirport || flight.departureCity || "";
+
+  const params = new URLSearchParams({
+    text: title,
+    dates: `${toGoogleCalendarDateFormat(start)}/${toGoogleCalendarDateFormat(end)}`,
+    location,
+  });
+
+  return `${GOOGLE_CALENDAR_BASE_URL}&${params.toString()}`;
+}
+
 export async function generateTripPdf(
   trip: Trip,
   clientName?: string,

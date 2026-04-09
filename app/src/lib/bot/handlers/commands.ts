@@ -13,7 +13,7 @@ import {
   translateMessage,
 } from "@/lib/services/trip-message.service";
 import {
-  buildGoogleCalendarUrl,
+  buildFlightCalendarUrl,
   buildTripPdfFileName,
   generateTripPdf,
 } from "@/lib/services/trip-export.service";
@@ -194,9 +194,30 @@ export async function handleDocsCommand(ctx: Context): Promise<void> {
           },
         );
 
-        await ctx.reply(
-          `📅 Add this trip to Google Calendar:\n${buildGoogleCalendarUrl(summarized, travelerName)}`,
-        );
+        const flights = Array.isArray(summarized.flights)
+          ? (summarized.flights as FlightItem[])
+          : [];
+        const calendarLines = flights
+          .map((flight, i) => {
+            const url = buildFlightCalendarUrl(flight, travelerName);
+            if (!url) return null;
+            const isTrain = flight.type === "train";
+            const number = isTrain ? flight.trainNumber : flight.flightNumber;
+            const label = [
+              number,
+              `${flight.departureCity || "?"} → ${flight.arrivalCity || "?"}`,
+            ]
+              .filter(Boolean)
+              .join(" ");
+            return `${isTrain ? "🚂" : "✈️"} ${label || `Flight ${i + 1}`}\n${url}`;
+          })
+          .filter(Boolean);
+
+        if (calendarLines.length > 0) {
+          await ctx.reply(
+            `📅 Add flights to Google Calendar:\n\n${calendarLines.join("\n\n")}`,
+          );
+        }
       } catch (error) {
         log.error({ error }, "Failed /docs background work");
         await ctx.reply("⚠️ Could not load documents.").catch(() => {});
