@@ -39,6 +39,17 @@ const mockFormatFullSummary = vi
 const mockFormatDocs = vi
   .fn()
   .mockReturnValue("📄 <b>Documents</b>\nERGO Insurance");
+const mockGenerateTripPdf = vi.fn().mockResolvedValue(Buffer.from("pdf"));
+const mockGenerateWalletPass = vi.fn().mockResolvedValue(Buffer.from("pkpass"));
+const mockBuildGoogleCalendarUrl = vi
+  .fn()
+  .mockReturnValue(
+    "https://calendar.google.com/calendar/render?action=TEMPLATE",
+  );
+const mockBuildTripPdfFileName = vi.fn().mockReturnValue("trip.pdf");
+const mockBuildWalletPassFileName = vi.fn().mockReturnValue("ticket.pkpass");
+const mockCanGenerateWalletPasses = vi.fn().mockReturnValue(true);
+const BACKGROUND_TASK_SETTLE_MS = 50;
 
 vi.mock("@/lib/services/trip-message.service", () => ({
   tripMessageService: {
@@ -68,11 +79,25 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
+vi.mock("@/lib/services/trip-export.service", () => ({
+  generateTripPdf: (...args: unknown[]) => mockGenerateTripPdf(...args),
+  generateWalletPass: (...args: unknown[]) => mockGenerateWalletPass(...args),
+  buildGoogleCalendarUrl: (...args: unknown[]) =>
+    mockBuildGoogleCalendarUrl(...args),
+  buildTripPdfFileName: (...args: unknown[]) =>
+    mockBuildTripPdfFileName(...args),
+  buildWalletPassFileName: (...args: unknown[]) =>
+    mockBuildWalletPassFileName(...args),
+  canGenerateWalletPasses: (...args: unknown[]) =>
+    mockCanGenerateWalletPasses(...args),
+}));
+
 function createMockCtx(overrides: Record<string, unknown> = {}) {
   return {
     chat: { id: 12345, type: "private" },
     message: { text: "/trip" },
     reply: vi.fn(),
+    replyWithDocument: vi.fn(),
     ...overrides,
   };
 }
@@ -82,6 +107,7 @@ describe("Bot Commands", () => {
     vi.clearAllMocks();
     // Default: subscriber lookup returns nothing
     mockFindByChatId.mockResolvedValue(undefined);
+    mockCanGenerateWalletPasses.mockReturnValue(true);
   });
 
   it("/trip should send loading message and fire background summary", async () => {
@@ -105,7 +131,7 @@ describe("Bot Commands", () => {
     expect(ctx.reply).toHaveBeenCalledWith("⏳ Loading your trip summary...");
 
     // Background work runs asynchronously — wait a tick for it to resolve
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, BACKGROUND_TASK_SETTLE_MS));
 
     // Background call sends the formatted summary with HTML parse_mode
     expect(ctx.reply).toHaveBeenCalledWith(
@@ -170,7 +196,7 @@ describe("Bot Commands", () => {
     expect(ctx.reply).toHaveBeenCalledWith("⏳ Loading hotel details...");
 
     // Background work resolves
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, BACKGROUND_TASK_SETTLE_MS));
 
     expect(mockFormatHotels).toHaveBeenCalled();
     expect(ctx.reply).toHaveBeenCalledWith(expect.stringContaining("Hotel"), {
@@ -198,5 +224,49 @@ describe("Bot Commands", () => {
     expect(ctx.reply).toHaveBeenCalledWith(expect.stringContaining("Anna"), {
       parse_mode: "HTML",
     });
+  });
+
+  it("/docs should send text, PDF, calendar link, and wallet pass", async () => {
+    const { handleDocsCommand } = await import("@/lib/bot/handlers/commands");
+
+    mockFindByTelegramChatId.mockResolvedValueOnce({
+      id: "c1",
+      language: "en",
+      name: "Jane Doe",
+    });
+    mockFindByClientId.mockResolvedValueOnce({
+      id: "t1",
+      flights: [
+        {
+          type: "flight",
+          flightNumber: "AY100",
+          departureCity: "Helsinki",
+          arrivalCity: "Barcelona",
+          flightDate: "2026-06-01T09:00:00.000Z",
+          arrivalDate: "2026-06-01T12:00:00.000Z",
+          passengers: [],
+        },
+      ],
+    });
+
+    const ctx = createMockCtx({ message: { text: "/docs" } });
+    await handleDocsCommand(ctx as never);
+
+    expect(ctx.reply).toHaveBeenCalledWith("⏳ Loading documents...");
+
+    await new Promise((r) => setTimeout(r, BACKGROUND_TASK_SETTLE_MS));
+
+    expect(ctx.reply).toHaveBeenCalledWith(
+      expect.stringContaining("Documents"),
+      {
+        parse_mode: "HTML",
+      },
+    );
+    expect(mockGenerateTripPdf).toHaveBeenCalled();
+    expect(ctx.replyWithDocument).toHaveBeenCalledTimes(2);
+    expect(ctx.reply).toHaveBeenCalledWith(
+      expect.stringContaining("calendar.google.com"),
+    );
+    expect(mockGenerateWalletPass).toHaveBeenCalled();
   });
 });
