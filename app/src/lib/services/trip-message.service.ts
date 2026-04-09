@@ -8,7 +8,7 @@ import type {
   AttractionItem,
   PassengerItem,
 } from "@/lib/types/trip-sections";
-import { getGeminiClient } from "@/lib/ai/gemini-client";
+import { getAnthropicClient } from "@/lib/ai/anthropic-client";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("trip-message");
@@ -767,21 +767,23 @@ Rules:
 - Return ONLY the translated message, nothing else.`;
 
 /**
- * Translate a single HTML message to the target language via Gemini.
+ * Translate a single HTML message to the target language via Claude.
  * Returns the original text on AI failure (graceful degradation).
  * Skips translation if targetLang is empty or "en" (messages are already in English by default).
  */
 async function aiTranslate(text: string, targetLang: string): Promise<string> {
   if (!text || !targetLang) return text;
   try {
-    const client = getGeminiClient();
-    const prompt = TRANSLATE_PROMPT.replace("{LANG}", targetLang);
-    const res = await client.models.generateContent({
-      model: "gemini-2.0-flash",
-      config: { maxOutputTokens: 4096, systemInstruction: prompt },
-      contents: [{ role: "user", parts: [{ text }] }],
+    const client = getAnthropicClient();
+    const systemPrompt = TRANSLATE_PROMPT.replace(/\{LANG\}/g, targetLang);
+    const res = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: "user", content: text }],
     });
-    return res.text?.trim() || text;
+    const out = res.content[0]?.type === "text" ? res.content[0].text : "";
+    return out.trim() || text;
   } catch (err) {
     log.warn({ err, targetLang }, "AI translate failed, using original text");
     return text;
@@ -813,19 +815,21 @@ export async function translateMessage(
 }
 
 /**
- * Summarize a verbose text (hotel message, insurance policy) via Gemini.
+ * Summarize a verbose text (hotel message, insurance policy) via Claude.
  * Returns the original text on AI failure (graceful degradation).
  */
 async function aiSummarize(text: string): Promise<string> {
   if (!text || text.length < 100) return text; // too short to summarize
   try {
-    const client = getGeminiClient();
-    const res = await client.models.generateContent({
-      model: "gemini-2.0-flash",
-      config: { maxOutputTokens: 400, systemInstruction: SUMMARIZE_PROMPT },
-      contents: [{ role: "user", parts: [{ text }] }],
+    const client = getAnthropicClient();
+    const res = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 400,
+      system: SUMMARIZE_PROMPT,
+      messages: [{ role: "user", content: text }],
     });
-    return res.text?.trim() || text;
+    const out = res.content[0]?.type === "text" ? res.content[0].text : "";
+    return out.trim() || text;
   } catch (err) {
     log.warn({ err }, "AI summarize failed, using original text");
     return text;

@@ -1,5 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 import { createLogger } from "@/lib/logger";
+import { getAnthropicClient } from "@/lib/ai/anthropic-client";
 import type { Trip } from "@/lib/db/repositories";
 import type { Message } from "@/lib/db/repositories";
 import type {
@@ -12,17 +12,7 @@ import type {
 
 const log = createLogger("ai-service");
 
-// Lazy-init singleton — avoids import-time env validation
-let _client: GoogleGenAI | null = null;
-function getClient(): GoogleGenAI {
-  if (!_client) {
-    _client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  }
-  return _client;
-}
-
-const FLASH_MODEL = "gemini-2.0-flash";
-const PRO_MODEL = "gemini-2.0-flash-lite";
+const MODEL = "claude-opus-4-6";
 
 function formatFlights(raw: unknown): string {
   const flights = (raw as FlightItem[] | null) ?? [];
@@ -126,78 +116,61 @@ ${formatInsurances(trip.insurances)}
 }
 
 /**
- * Convert chat history to Gemini content format.
+ * Convert chat history to Anthropic messages format.
  */
-function buildContents(
+function buildMessages(
   history: Message[],
   userMessage: string,
-): Array<{ role: "user" | "model"; parts: Array<{ text: string }> }> {
+): Anthropic.MessageParam[] {
   const sorted = [...history].reverse();
 
-  const contents = sorted.map((m) => ({
-    role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
-    parts: [{ text: m.content }],
+  const messages: Anthropic.MessageParam[] = sorted.map((m) => ({
+    role: m.role === "assistant" ? "assistant" : "user",
+    content: m.content,
   }));
 
-  contents.push({ role: "user", parts: [{ text: userMessage }] });
+  messages.push({ role: "user", content: userMessage });
 
-  return contents;
+  return messages;
 }
 
 /**
- * Generate an AI response to a tourist's question.
- * Uses Gemini 2.0 Flash (fast/cheap) by default, falls back to Flash-Lite.
+ * Generate an AI response to a tourist's question using Claude Opus 4.6.
  */
 export async function generateResponse(
   trip: Trip,
   history: Message[],
   userMessage: string,
 ): Promise<string> {
-  const client = getClient();
+  const client = getAnthropicClient();
   const systemPrompt = buildSystemPrompt(trip);
-  const contents = buildContents(history, userMessage);
+  const messages = buildMessages(history, userMessage);
 
   try {
-    const response = await client.models.generateContent({
-      model: FLASH_MODEL,
-      config: {
-        maxOutputTokens: 1024,
-        systemInstruction: systemPrompt,
-      },
-      contents,
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages,
     });
 
-    const text = response.text ?? "";
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
 
     log.debug(
       {
-        model: FLASH_MODEL,
-        inputTokens: response.usageMetadata?.promptTokenCount,
-        outputTokens: response.usageMetadata?.candidatesTokenCount,
+        model: MODEL,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
       },
       "AI response generated",
     );
 
     return text;
   } catch (error) {
-    log.error({ error }, "AI generation failed, trying fallback model");
-
-    try {
-      const fallback = await client.models.generateContent({
-        model: PRO_MODEL,
-        config: {
-          maxOutputTokens: 1024,
-          systemInstruction: systemPrompt,
-        },
-        contents,
-      });
-
-      return fallback.text ?? "Sorry, I couldn't process your request.";
-    } catch (fallbackError) {
-      log.error({ fallbackError }, "Fallback model also failed");
-      return trip.managerPhone
-        ? `I'm having trouble right now. Please contact your manager: ${trip.managerPhone}`
-        : "I'm having trouble right now. Please contact your travel manager.";
-    }
+    log.error({ error }, "AI generation failed");
+    return trip.managerPhone
+      ? `I'm having trouble right now. Please contact your manager: ${trip.managerPhone}`
+      : "I'm having trouble right now. Please contact your travel manager.";
   }
 }

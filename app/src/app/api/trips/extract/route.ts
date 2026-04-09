@@ -37,8 +37,10 @@ export async function POST(request: NextRequest) {
     }
 
     const truncated = extractedText.slice(0, 15000);
-    const prompt =
+    const basePrompt =
       (category && TRIP_CATEGORY_PROMPTS[category]) || TRIP_EXTRACTION_PROMPT;
+    const currentYear = new Date().getFullYear();
+    const prompt = `${basePrompt}\n- IMPORTANT: Today's date is ${new Date().toISOString().split("T")[0]}. If a date in the text has no year (e.g. "18 Mar", "Wed 18 Mar"), always use the year ${currentYear}.`;
 
     const client = getGeminiClient();
     const response = await client.models.generateContent({
