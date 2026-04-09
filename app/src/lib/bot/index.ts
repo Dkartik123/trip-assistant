@@ -147,5 +147,9 @@ export function createWebhookHandler() {
   const bot = getBot();
   return webhookCallback(bot, "std/http", {
     secretToken: process.env.TELEGRAM_WEBHOOK_SECRET,
+    // Claude Opus can take 15-30 s to respond; raise the grammY timeout so
+    // Telegram receives a 200 OK and does not retry the same update.
+    timeoutMilliseconds: 55000,
+    onTimeout: "return",
   });
 }
