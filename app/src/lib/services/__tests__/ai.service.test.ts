@@ -3,19 +3,19 @@ import type { Trip } from "@/lib/db/repositories";
 
 /**
  * AI service unit test — verifies prompt building and response handling.
- * Uses mocked Google Gemini client to avoid real API calls.
+ * Uses mocked Anthropic client to avoid real API calls.
  */
 
-// Mock Google GenAI SDK
-const mockGenerateContent = vi.fn().mockResolvedValue({
-  text: "Your flight is on May 12.",
-  usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 20 },
+// Mock Anthropic SDK
+const mockCreate = vi.fn().mockResolvedValue({
+  content: [{ type: "text", text: "Your flight is on May 12." }],
+  usage: { input_tokens: 100, output_tokens: 20 },
 });
 
-vi.mock("@google/genai", () => {
+vi.mock("@anthropic-ai/sdk", () => {
   return {
-    GoogleGenAI: class MockGoogleGenAI {
-      models = { generateContent: mockGenerateContent };
+    default: class MockAnthropic {
+      messages = { create: mockCreate };
     },
   };
 });
@@ -33,7 +33,11 @@ vi.mock("@/lib/logger", () => ({
 describe("AI Service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.GEMINI_API_KEY = "AIzaSy-test-key";
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test-key";
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: "Your flight is on May 12." }],
+      usage: { input_tokens: 100, output_tokens: 20 },
+    });
   });
 
   it("should generate a response from trip data", async () => {
@@ -140,6 +144,7 @@ describe("AI Service", () => {
       attractions: [],
       inviteToken: "test-token",
       notes: null,
+      clientMemory: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as unknown as Trip;
@@ -186,6 +191,7 @@ describe("AI Service", () => {
       attractions: [],
       inviteToken: "token-2",
       notes: null,
+      clientMemory: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as unknown as Trip;

@@ -40,15 +40,12 @@ const mockFormatDocs = vi
   .fn()
   .mockReturnValue("📄 <b>Documents</b>\nERGO Insurance");
 const mockGenerateTripPdf = vi.fn().mockResolvedValue(Buffer.from("pdf"));
-const mockGenerateWalletPass = vi.fn().mockResolvedValue(Buffer.from("pkpass"));
-const mockBuildGoogleCalendarUrl = vi
+const mockBuildFlightCalendarUrl = vi
   .fn()
   .mockReturnValue(
     "https://calendar.google.com/calendar/render?action=TEMPLATE",
   );
 const mockBuildTripPdfFileName = vi.fn().mockReturnValue("trip.pdf");
-const mockBuildWalletPassFileName = vi.fn().mockReturnValue("ticket.pkpass");
-const mockCanGenerateWalletPasses = vi.fn().mockReturnValue(true);
 const BACKGROUND_TASK_SETTLE_MS = 50;
 
 vi.mock("@/lib/services/trip-message.service", () => ({
@@ -81,15 +78,10 @@ vi.mock("@/lib/logger", () => ({
 
 vi.mock("@/lib/services/trip-export.service", () => ({
   generateTripPdf: (...args: unknown[]) => mockGenerateTripPdf(...args),
-  generateWalletPass: (...args: unknown[]) => mockGenerateWalletPass(...args),
-  buildGoogleCalendarUrl: (...args: unknown[]) =>
-    mockBuildGoogleCalendarUrl(...args),
+  buildFlightCalendarUrl: (...args: unknown[]) =>
+    mockBuildFlightCalendarUrl(...args),
   buildTripPdfFileName: (...args: unknown[]) =>
     mockBuildTripPdfFileName(...args),
-  buildWalletPassFileName: (...args: unknown[]) =>
-    mockBuildWalletPassFileName(...args),
-  canGenerateWalletPasses: (...args: unknown[]) =>
-    mockCanGenerateWalletPasses(...args),
 }));
 
 function createMockCtx(overrides: Record<string, unknown> = {}) {
@@ -107,7 +99,6 @@ describe("Bot Commands", () => {
     vi.clearAllMocks();
     // Default: subscriber lookup returns nothing
     mockFindByChatId.mockResolvedValue(undefined);
-    mockCanGenerateWalletPasses.mockReturnValue(true);
   });
 
   it("/trip should send loading message and fire background summary", async () => {
@@ -226,7 +217,7 @@ describe("Bot Commands", () => {
     });
   });
 
-  it("/docs should send text, PDF, calendar link, and wallet pass", async () => {
+  it("/docs should send text, PDF, and calendar links", async () => {
     const { handleDocsCommand } = await import("@/lib/bot/handlers/commands");
 
     mockFindByTelegramChatId.mockResolvedValueOnce({
@@ -258,15 +249,12 @@ describe("Bot Commands", () => {
 
     expect(ctx.reply).toHaveBeenCalledWith(
       expect.stringContaining("Documents"),
-      {
-        parse_mode: "HTML",
-      },
+      { parse_mode: "HTML" },
     );
     expect(mockGenerateTripPdf).toHaveBeenCalled();
-    expect(ctx.replyWithDocument).toHaveBeenCalledTimes(2);
+    expect(ctx.replyWithDocument).toHaveBeenCalledTimes(1);
     expect(ctx.reply).toHaveBeenCalledWith(
       expect.stringContaining("calendar.google.com"),
     );
-    expect(mockGenerateWalletPass).toHaveBeenCalled();
   });
 });
