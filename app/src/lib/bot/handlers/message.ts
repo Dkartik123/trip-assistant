@@ -6,7 +6,10 @@ import {
   messageRepository,
   subscriberRepository,
 } from "@/lib/db/repositories";
-import { generateResponse } from "@/lib/services/ai.service";
+import {
+  generateResponse,
+  extractAndUpdateMemory,
+} from "@/lib/services/ai.service";
 import { env } from "@/lib/config/env";
 
 const log = createLogger("bot:message");
@@ -101,6 +104,17 @@ export async function handleMessage(ctx: Context): Promise<void> {
     });
 
     await ctx.reply(response, { parse_mode: "HTML" });
+
+    // Update client memory in background (fire-and-forget)
+    void extractAndUpdateMemory(trip.clientMemory ?? null, userText).then(
+      (updatedMemory) => {
+        if (updatedMemory) {
+          tripRepository
+            .updateClientMemory(trip.id, updatedMemory)
+            .catch((err) => log.warn({ err }, "Failed to save client memory"));
+        }
+      },
+    );
 
     // Notify operator about client's message (fire-and-forget)
     const operatorChatId = env.OPERATOR_TELEGRAM_CHAT_ID;

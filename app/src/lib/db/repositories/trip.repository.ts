@@ -64,6 +64,13 @@ export const tripRepository = {
     return updated;
   },
 
+  async updateClientMemory(id: string, memory: string): Promise<void> {
+    await db
+      .update(trips)
+      .set({ clientMemory: memory, updatedAt: new Date() })
+      .where(eq(trips.id, id));
+  },
+
   async delete(id: string): Promise<void> {
     await db.delete(trips).where(eq(trips.id, id));
   },

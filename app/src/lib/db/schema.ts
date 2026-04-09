@@ -220,6 +220,7 @@ export const trips = pgTable(
     attractions: jsonb("attractions").$type<AttractionItem[]>().default([]),
 
     notes: text("notes"),
+    clientMemory: text("client_memory"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

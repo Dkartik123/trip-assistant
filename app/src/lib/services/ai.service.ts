@@ -13,6 +13,7 @@ import type {
 const log = createLogger("ai-service");
 
 const MODEL = "claude-opus-4-6";
+const MEMORY_MODEL = "claude-haiku-4-5-20251001";
 
 function formatFlights(raw: unknown): string {
   const flights = (raw as FlightItem[] | null) ?? [];
@@ -93,6 +94,10 @@ function formatInsurances(raw: unknown): string {
  * Build a system prompt with trip context.
  */
 function buildSystemPrompt(trip: Trip): string {
+  const memorySection = trip.clientMemory
+    ? `\n## What the client has shared\n${trip.clientMemory}\n`
+    : "";
+
   return `You are a friendly personal travel assistant for a tourist. You help answer questions about their upcoming trip. Be concise, helpful, and warm.
 
 ## Trip Information
@@ -103,7 +108,7 @@ ${formatGuides(trip.guides)}
 ${formatTransfers(trip.transfers)}
 ${formatInsurances(trip.insurances)}
 - **Manager contact**: ${trip.managerPhone || "N/A"}
-
+${memorySection}
 ## Rules
 
 1. Answer ONLY about this trip and general travel advice.
@@ -113,6 +118,55 @@ ${formatInsurances(trip.insurances)}
 5. Be concise — tourists are often in a hurry.
 6. Never invent flight times, hotel addresses, or other factual trip data.
 7. Whenever you mention ANY physical location — hotel name, address, airport, station, attraction, meeting point, city landmark — ALWAYS wrap it in a clickable Google Maps link using Telegram HTML format: <a href="https://www.google.com/maps/search/?api=1&query=URL_ENCODED_LOCATION">Display Name</a>. Replace spaces with + in the query. Example: <a href="https://www.google.com/maps/search/?api=1&query=Rixos+Premium+Antalya">Rixos Premium Antalya</a>. Do NOT use markdown formatting — use HTML only.`;
+}
+
+/**
+ * Extract and update client memory from a new message using Claude Haiku.
+ * Returns updated memory string or null if nothing worth saving.
+ */
+export async function extractAndUpdateMemory(
+  existingMemory: string | null,
+  userMessage: string,
+): Promise<string | null> {
+  const client = getAnthropicClient();
+
+  const system = `You are a memory manager for a travel assistant. Your job is to extract and remember useful facts that the client shares about themselves, their preferences, plans, or needs.
+
+Extract ONLY genuinely useful facts: preferences (food, seats, transport), personal plans, health/accessibility needs, travel companions, extra destinations, budget hints, specific questions they keep asking about.
+
+Do NOT store: greetings, questions about trip data that's already in the system, generic chitchat.
+
+Return a concise bullet list (• fact). If nothing new or useful, return the existing memory unchanged.
+Return ONLY the bullet list, no explanations.`;
+
+  const userPrompt = `Existing memory:
+${existingMemory || "(empty)"}
+
+New client message:
+"${userMessage}"
+
+Return updated memory bullet list:`;
+
+  try {
+    const response = await client.messages.create({
+      model: MEMORY_MODEL,
+      max_tokens: 512,
+      system,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+
+    const text =
+      response.content[0]?.type === "text"
+        ? response.content[0].text.trim()
+        : null;
+
+    // If response is empty or same as existing, return null (no update needed)
+    if (!text || text === (existingMemory || "(empty)")) return null;
+    return text;
+  } catch (error) {
+    log.warn({ error }, "Memory extraction failed, skipping");
+    return null;
+  }
 }
 
 /**
