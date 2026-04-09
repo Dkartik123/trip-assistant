@@ -1,3 +1,4 @@
+import Anthropic from "@anthropic-ai/sdk";
 import { createLogger } from "@/lib/logger";
 import { getAnthropicClient } from "@/lib/ai/anthropic-client";
 import type { Trip } from "@/lib/db/repositories";

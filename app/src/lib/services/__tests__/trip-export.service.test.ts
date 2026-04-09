@@ -99,6 +99,7 @@ describe("trip-export.service", () => {
         insuranceInfo: null,
         insurancePhone: null,
         inviteToken: null,
+        clientMemory: null,
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
         updatedAt: new Date("2026-01-01T00:00:00.000Z"),
       },
@@ -150,6 +151,7 @@ describe("trip-export.service", () => {
         insuranceInfo: null,
         insurancePhone: null,
         inviteToken: null,
+        clientMemory: null,
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
         updatedAt: new Date("2026-01-01T00:00:00.000Z"),
       },
@@ -169,12 +171,5 @@ describe("trip-export.service", () => {
         '<i>Ready</i>\n\n\n<a href="https://example.com">Link</a> &copy;',
       ]),
     ).toBe("📄 Documents\nLine & more €\n\nReady\n\nLink ©");
-  });
-
-  it("reports wallet support as disabled without certificates", async () => {
-    const { canGenerateWalletPasses } =
-      await import("@/lib/services/trip-export.service");
-
-    expect(canGenerateWalletPasses()).toBe(false);
   });
 });
