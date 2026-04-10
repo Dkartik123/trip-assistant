@@ -162,19 +162,19 @@ export function TripDetailClient({
       <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-          <Button
-            nativeButton={false}
-            variant="ghost"
-            size="icon"
-            className="mt-0.5 shrink-0"
-            render={<Link href="/admin/trips" />}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+            <Button
+              nativeButton={false}
+              variant="ghost"
+              size="icon"
+              className="mt-0.5 shrink-0"
+              render={<Link href="/admin/trips" />}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <h1 className="break-words text-xl font-bold tracking-tight sm:text-2xl">
-                {trip.clientName}
+                  {trip.clientName}
                 </h1>
                 <Badge className={statusMap[trip.status].className}>
                   {statusMap[trip.status].label}
