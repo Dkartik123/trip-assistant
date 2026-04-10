@@ -24,6 +24,8 @@ const navigation = [
   { name: "Настройки", href: "/admin/settings", icon: Settings },
 ];
 
+const MOBILE_SIDEBAR_WIDTH_CLASS = "w-[min(18rem,85vw)]";
+
 function SidebarContent({ pathname }: { pathname: string }) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
@@ -106,7 +108,10 @@ export function AdminSidebar() {
         </SheetTrigger>
         <SheetContent
           side="left"
-          className="w-72 max-w-[85vw] border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl"
+          className={cn(
+            MOBILE_SIDEBAR_WIDTH_CLASS,
+            "border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl",
+          )}
         >
           <SidebarContent pathname={pathname} />
         </SheetContent>
