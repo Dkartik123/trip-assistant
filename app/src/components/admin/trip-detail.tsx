@@ -159,89 +159,109 @@ export function TripDetailClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
           <Button
             nativeButton={false}
             variant="ghost"
             size="icon"
+            className="mt-0.5 shrink-0"
             render={<Link href="/admin/trips" />}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h1 className="break-words text-xl font-bold tracking-tight sm:text-2xl">
                 {trip.clientName}
-              </h1>
-              <Badge className={statusMap[trip.status].className}>
-                {statusMap[trip.status].label}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground">{tripSubtitle(trip)}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            nativeButton={false}
-            variant="outline"
-            render={
-              <a
-                href={`/api/trips/${id}/exports/pdf`}
-                target="_blank"
-                rel="noreferrer"
-              />
-            }
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            PDF
-          </Button>
-          <Button
-            nativeButton={false}
-            variant="outline"
-            render={
-              <a href={googleCalendarUrl} target="_blank" rel="noreferrer" />
-            }
-          >
-            <CalendarDays className="mr-2 h-4 w-4" />
-            Google Calendar
-          </Button>
-          <Dialog>
-            <DialogTrigger render={<Button variant="outline" />}>
-              <LinkIcon className="mr-2 h-4 w-4" />
-              Deep-link
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Ссылка для Telegram бота</DialogTitle>
-                <DialogDescription>
-                  Отправьте эту ссылку клиенту и попутчикам — каждый сможет
-                  подключиться к боту
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex gap-2">
-                <Input
-                  value={inviteLink}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button onClick={copyLink} variant="outline" size="icon">
-                  {copied ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+                </h1>
+                <Badge className={statusMap[trip.status].className}>
+                  {statusMap[trip.status].label}
+                </Badge>
               </div>
-            </DialogContent>
-          </Dialog>
-          <Button
-            nativeButton={false}
-            render={<Link href={`/admin/trips/${id}/edit`} />}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Редактировать
-          </Button>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                {tripSubtitle(trip)}
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:flex-wrap xl:justify-end">
+            <Button
+              nativeButton={false}
+              variant="outline"
+              className="w-full justify-center xl:w-auto"
+              render={
+                <a
+                  href={`/api/trips/${id}/exports/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                />
+              }
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              PDF
+            </Button>
+            <Button
+              nativeButton={false}
+              variant="outline"
+              className="w-full justify-center xl:w-auto"
+              render={
+                <a href={googleCalendarUrl} target="_blank" rel="noreferrer" />
+              }
+            >
+              <CalendarDays className="mr-2 h-4 w-4" />
+              Google Calendar
+            </Button>
+            <Dialog>
+              <DialogTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center xl:w-auto"
+                  />
+                }
+              >
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Deep-link
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Ссылка для Telegram бота</DialogTitle>
+                  <DialogDescription>
+                    Отправьте эту ссылку клиенту и попутчикам — каждый сможет
+                    подключиться к боту
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Input
+                    value={inviteLink}
+                    readOnly
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    onClick={copyLink}
+                    variant="outline"
+                    size="icon"
+                    className="w-full sm:w-8"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Button
+              nativeButton={false}
+              className="w-full justify-center xl:w-auto"
+              render={<Link href={`/admin/trips/${id}/edit`} />}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Редактировать
+            </Button>
+          </div>
         </div>
       </div>
 
