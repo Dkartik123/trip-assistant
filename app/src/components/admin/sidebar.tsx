@@ -26,7 +26,7 @@ const navigation = [
 
 function SidebarContent({ pathname }: { pathname: string }) {
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       {/* Brand header */}
       <div className="flex h-16 items-center gap-3 px-5 border-b border-sidebar-border">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary/20 shrink-0">
@@ -98,13 +98,16 @@ export function AdminSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="fixed top-3 left-3 z-40 md:hidden"
+              className="fixed top-3 left-3 z-40 border border-border/60 bg-background/95 text-foreground shadow-sm backdrop-blur md:hidden"
             />
           }
         >
           <Menu className="h-5 w-5" />
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent
+          side="left"
+          className="w-72 max-w-[85vw] border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl"
+        >
           <SidebarContent pathname={pathname} />
         </SheetContent>
       </Sheet>
